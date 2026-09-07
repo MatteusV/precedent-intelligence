@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "precedent_intelligence",
+  "project_id": "9e2aac9d-2de9-49b0-8bea-c170a18bf80c"
+}
