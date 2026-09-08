@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CaseWorkbench } from "@/components/app/case-workbench";
 import { FormField } from "@/components/app/form-field";
@@ -8,6 +9,7 @@ import { getCaseStages, toCaseStageInput } from "@/lib/case-stages";
 import { PRODUCT_THEMES } from "@/lib/product-themes";
 import { confirmCaseAction } from "@/app/actions/case-actions";
 import { getCaseForOffice, requireOfficeContext } from "@/server/case/case-service";
+import OfficeLoading from "../../../loading";
 
 interface ConfirmCasePageProps {
   params: Promise<{ id: string }>;
@@ -17,7 +19,15 @@ export const metadata = {
   title: "Confirmar tema",
 };
 
-export default async function ConfirmCasePage({ params }: ConfirmCasePageProps) {
+export default function ConfirmCasePage({ params }: ConfirmCasePageProps) {
+  return (
+    <Suspense fallback={<OfficeLoading />}>
+      <ConfirmCaseContent params={params} />
+    </Suspense>
+  );
+}
+
+async function ConfirmCaseContent({ params }: ConfirmCasePageProps) {
   const { id } = await params;
   const office = await requireOfficeContext();
   const legalCase = await getCaseForOffice(id, office.clerkOrgId);
@@ -79,12 +89,12 @@ export default async function ConfirmCasePage({ params }: ConfirmCasePageProps) 
             />
           </FormField>
 
-          <div>
+          <div className="sticky bottom-4 flex justify-end rounded-lg border border-border bg-background/90 p-3 backdrop-blur-md">
             <Button type="submit">Confirmar e salvar caso</Button>
           </div>
         </form>
 
-        <aside className="space-y-2 border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
+        <aside className="space-y-3 rounded-lg border border-border bg-card/40 px-4 py-4 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:border-l lg:pl-6">
           <p className="font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
             Material
           </p>

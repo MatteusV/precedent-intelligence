@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getCaseNextAction,
   getCaseStages,
   getCurrentStageId,
   getNewCaseStages,
@@ -88,5 +89,29 @@ describe("getCaseStages", () => {
 describe("getNewCaseStages", () => {
   it("starts on material", () => {
     expect(getNewCaseStages()[0]).toEqual({ id: "material", state: "current" });
+  });
+});
+
+describe("getCaseNextAction", () => {
+  it("marks a finished petition as complete with no current stage", () => {
+    const input = {
+      status: "confirmed" as const,
+      hasDossier: true,
+      hasCurrentPetition: true,
+      isGeneratingDossier: false,
+    };
+
+    expect(getCurrentStageId(input)).toBeNull();
+    expect(getCaseStages(input).map((stage) => `${stage.id}:${stage.state}`)).toEqual([
+      "material:complete",
+      "theme:complete",
+      "dossier:complete",
+      "petition:complete",
+    ]);
+    expect(getCaseNextAction("c1", getCaseStages(input))).toEqual({
+      stageId: null,
+      label: "Peça pronta",
+      href: "/app/casos/c1#peticao",
+    });
   });
 });

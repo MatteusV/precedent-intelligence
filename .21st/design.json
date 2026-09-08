@@ -1,0 +1,418 @@
+{
+  "version": 1,
+  "project": {
+    "name": "precedent-intelligence",
+    "productType": null,
+    "stack": [
+      "nextjs",
+      "react",
+      "shadcn",
+      "tailwind-v4"
+    ]
+  },
+  "sources": {
+    "tokens": [
+      "src/app/globals.css"
+    ],
+    "components": [
+      "src/components/ui"
+    ],
+    "assets": [],
+    "instructions": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ]
+  },
+  "design": {
+    "colorMode": "light-and-dark",
+    "colors": {
+      "--color-background": {
+        "value": "var(--background)",
+        "source": "src/app/globals.css"
+      },
+      "--color-foreground": {
+        "value": "var(--foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-folio": {
+        "value": "var(--folio)",
+        "source": "src/app/globals.css"
+      },
+      "--color-folio-ink": {
+        "value": "var(--folio-ink)",
+        "source": "src/app/globals.css"
+      },
+      "--color-opposing": {
+        "value": "var(--opposing)",
+        "source": "src/app/globals.css"
+      },
+      "--color-stamp": {
+        "value": "var(--stamp)",
+        "source": "src/app/globals.css"
+      },
+      "--color-sidebar-ring": {
+        "value": "var(--sidebar-ring)",
+        "source": "src/app/globals.css"
+      },
+      "--color-sidebar-border": {
+        "value": "var(--sidebar-border)",
+        "source": "src/app/globals.css"
+      },
+      "--color-sidebar-accent-foreground": {
+        "value": "var(--sidebar-accent-foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-sidebar-accent": {
+        "value": "var(--sidebar-accent)",
+        "source": "src/app/globals.css"
+      },
+      "--color-sidebar-primary-foreground": {
+        "value": "var(--sidebar-primary-foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-sidebar-primary": {
+        "value": "var(--sidebar-primary)",
+        "source": "src/app/globals.css"
+      },
+      "--color-sidebar-foreground": {
+        "value": "var(--sidebar-foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-sidebar": {
+        "value": "var(--sidebar)",
+        "source": "src/app/globals.css"
+      },
+      "--color-chart-5": {
+        "value": "var(--chart-5)",
+        "source": "src/app/globals.css"
+      },
+      "--color-chart-4": {
+        "value": "var(--chart-4)",
+        "source": "src/app/globals.css"
+      },
+      "--color-chart-3": {
+        "value": "var(--chart-3)",
+        "source": "src/app/globals.css"
+      },
+      "--color-chart-2": {
+        "value": "var(--chart-2)",
+        "source": "src/app/globals.css"
+      },
+      "--color-chart-1": {
+        "value": "var(--chart-1)",
+        "source": "src/app/globals.css"
+      },
+      "--color-ring": {
+        "value": "var(--ring)",
+        "source": "src/app/globals.css"
+      },
+      "--color-input": {
+        "value": "var(--input)",
+        "source": "src/app/globals.css"
+      },
+      "--color-border": {
+        "value": "var(--border)",
+        "source": "src/app/globals.css"
+      },
+      "--color-destructive": {
+        "value": "var(--destructive)",
+        "source": "src/app/globals.css"
+      },
+      "--color-accent-foreground": {
+        "value": "var(--accent-foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-accent": {
+        "value": "var(--accent)",
+        "source": "src/app/globals.css"
+      },
+      "--color-muted-foreground": {
+        "value": "var(--muted-foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-muted": {
+        "value": "var(--muted)",
+        "source": "src/app/globals.css"
+      },
+      "--color-secondary-foreground": {
+        "value": "var(--secondary-foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-secondary": {
+        "value": "var(--secondary)",
+        "source": "src/app/globals.css"
+      },
+      "--color-primary-foreground": {
+        "value": "var(--primary-foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-primary": {
+        "value": "var(--primary)",
+        "source": "src/app/globals.css"
+      },
+      "--color-popover-foreground": {
+        "value": "var(--popover-foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-popover": {
+        "value": "var(--popover)",
+        "source": "src/app/globals.css"
+      },
+      "--color-card-foreground": {
+        "value": "var(--card-foreground)",
+        "source": "src/app/globals.css"
+      },
+      "--color-card": {
+        "value": "var(--card)",
+        "source": "src/app/globals.css"
+      },
+      "--background": {
+        "value": "#11100e",
+        "source": "src/app/globals.css"
+      },
+      "--foreground": {
+        "value": "#f4efe6",
+        "source": "src/app/globals.css"
+      },
+      "--card-foreground": {
+        "value": "#f4efe6",
+        "source": "src/app/globals.css"
+      },
+      "--popover-foreground": {
+        "value": "#f4efe6",
+        "source": "src/app/globals.css"
+      },
+      "--primary": {
+        "value": "#d4a24a",
+        "source": "src/app/globals.css"
+      },
+      "--primary-foreground": {
+        "value": "#1a160e",
+        "source": "src/app/globals.css"
+      },
+      "--secondary": {
+        "value": "#221f1a",
+        "source": "src/app/globals.css"
+      },
+      "--secondary-foreground": {
+        "value": "#f4efe6",
+        "source": "src/app/globals.css"
+      },
+      "--muted": {
+        "value": "#221f1a",
+        "source": "src/app/globals.css"
+      },
+      "--muted-foreground": {
+        "value": "#b7b0a4",
+        "source": "src/app/globals.css"
+      },
+      "--accent": {
+        "value": "#221f1a",
+        "source": "src/app/globals.css"
+      },
+      "--accent-foreground": {
+        "value": "#f4efe6",
+        "source": "src/app/globals.css"
+      },
+      "--destructive": {
+        "value": "#c45c3e",
+        "source": "src/app/globals.css"
+      },
+      "--border": {
+        "value": "#2c2922",
+        "source": "src/app/globals.css"
+      },
+      "--ring": {
+        "value": "#d4a24a",
+        "source": "src/app/globals.css"
+      },
+      "--chart-1": {
+        "value": "oklch(0.87 0 0)",
+        "source": "src/app/globals.css"
+      },
+      "--chart-2": {
+        "value": "oklch(0.556 0 0)",
+        "source": "src/app/globals.css"
+      },
+      "--chart-3": {
+        "value": "oklch(0.439 0 0)",
+        "source": "src/app/globals.css"
+      },
+      "--chart-4": {
+        "value": "oklch(0.371 0 0)",
+        "source": "src/app/globals.css"
+      },
+      "--chart-5": {
+        "value": "oklch(0.269 0 0)",
+        "source": "src/app/globals.css"
+      },
+      "--sidebar-foreground": {
+        "value": "#f4efe6",
+        "source": "src/app/globals.css"
+      },
+      "--sidebar-primary": {
+        "value": "oklch(0.488 0.243 264.376)",
+        "source": "src/app/globals.css"
+      },
+      "--sidebar-primary-foreground": {
+        "value": "oklch(0.985 0 0)",
+        "source": "src/app/globals.css"
+      },
+      "--sidebar-accent": {
+        "value": "oklch(0.269 0 0)",
+        "source": "src/app/globals.css"
+      },
+      "--sidebar-accent-foreground": {
+        "value": "oklch(0.985 0 0)",
+        "source": "src/app/globals.css"
+      },
+      "--sidebar-border": {
+        "value": "#2c2922",
+        "source": "src/app/globals.css"
+      },
+      "--sidebar-ring": {
+        "value": "oklch(0.556 0 0)",
+        "source": "src/app/globals.css"
+      }
+    },
+    "typography": {
+      "--font-sans": {
+        "value": "\"Geist\", \"Geist Fallback\", ui-sans-serif, system-ui, sans-serif",
+        "source": "src/app/globals.css"
+      },
+      "--font-mono": {
+        "value": "\"Geist Mono\", \"Geist Mono Fallback\", ui-monospace, monospace",
+        "source": "src/app/globals.css"
+      },
+      "--font-heading": {
+        "value": "var(--font-sans)",
+        "source": "src/app/globals.css"
+      },
+      "--font-folio": {
+        "value": "var(--font-source-serif), \"Iowan Old Style\", Georgia, serif",
+        "source": "src/app/globals.css"
+      },
+      "--font-weight-normal": {
+        "value": "400",
+        "source": "src/app/globals.css"
+      },
+      "--font-weight-medium": {
+        "value": "500",
+        "source": "src/app/globals.css"
+      },
+      "--font-weight-semibold": {
+        "value": "600",
+        "source": "src/app/globals.css"
+      }
+    },
+    "spacing": {},
+    "radius": {
+      "--radius-sm": {
+        "value": "calc(var(--radius) * 0.6)",
+        "source": "src/app/globals.css"
+      },
+      "--radius-md": {
+        "value": "calc(var(--radius) * 0.8)",
+        "source": "src/app/globals.css"
+      },
+      "--radius-lg": {
+        "value": "var(--radius)",
+        "source": "src/app/globals.css"
+      },
+      "--radius-xl": {
+        "value": "calc(var(--radius) * 1.4)",
+        "source": "src/app/globals.css"
+      },
+      "--radius-2xl": {
+        "value": "calc(var(--radius) * 1.8)",
+        "source": "src/app/globals.css"
+      },
+      "--radius-3xl": {
+        "value": "calc(var(--radius) * 2.2)",
+        "source": "src/app/globals.css"
+      },
+      "--radius-4xl": {
+        "value": "calc(var(--radius) * 2.6)",
+        "source": "src/app/globals.css"
+      },
+      "--radius": {
+        "value": "0.625rem",
+        "source": "src/app/globals.css"
+      }
+    },
+    "shadows": {},
+    "motion": {},
+    "density": "unknown"
+  },
+  "components": {
+    "installed": [
+      "badge",
+      "button",
+      "card",
+      "display-cards",
+      "empty",
+      "pricing-4",
+      "pricing-4-utils",
+      "separator"
+    ],
+    "preferredPrimitives": ["button", "card", "badge", "empty", "separator"],
+    "patterns": []
+  },
+  "constraints": {
+    "must": [
+      "Keep the legal-desk identity: walnut background, gold primary, cream folio for work product, stamp for risk.",
+      "Portuguese product copy; next action is always visible on the docket and case file.",
+      "Rebuild 21st sketches in Next.js/shadcn; do not paste raw HTML."
+    ],
+    "avoid": [
+      "Glassmorphism, huge marketing headlines, extra card stacks, and generic purple SaaS chrome.",
+      "Hardcoded amber/tailwind palette values outside tokens."
+    ]
+  },
+  "decisions": [
+    {
+      "id": "desk-system",
+      "choice": "Mesa do escritório",
+      "rationale": "Unify landing and app on app-desk tokens. Persistent case rail, court-roll docket with next action, folio as the only paper surface."
+    }
+  ],
+  "evidence": [
+    {
+      "fact": "components.installed",
+      "source": "src/components/ui"
+    },
+    {
+      "fact": "design.colorMode:light-and-dark",
+      "source": "src/app/globals.css"
+    },
+    {
+      "fact": "design.tokens",
+      "source": "src/app/globals.css"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "AGENTS.md"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "CLAUDE.md"
+    },
+    {
+      "fact": "project.stack:nextjs",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:react",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:shadcn",
+      "source": "components.json"
+    },
+    {
+      "fact": "project.stack:tailwind-v4",
+      "source": "package.json"
+    }
+  ],
+  "generatedAt": "2026-09-08T02:14:06.150Z"
+}

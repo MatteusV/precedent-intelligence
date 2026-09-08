@@ -13,7 +13,7 @@ export function Folio({
   return (
     <div
       className={cn(
-        "folio-sheet rounded-sm bg-folio px-6 py-8 text-folio-ink shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:px-10 sm:py-12",
+        "folio-sheet rounded-sm bg-folio px-6 py-8 text-folio-ink shadow-2xl ring-1 ring-folio-ink/10 sm:px-10 sm:py-12",
         className,
       )}
     >

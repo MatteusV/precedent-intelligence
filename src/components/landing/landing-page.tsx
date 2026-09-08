@@ -4,11 +4,12 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
-  Scale,
   ShieldCheck,
   Sparkles,
   XCircle,
 } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
+import { CopyrightYear } from "@/components/landing/copyright-year";
 import { ProcessDisplayCards } from "@/components/landing/process-display-cards";
 import { WorkflowScrollSteps } from "@/components/landing/workflow-scroll-steps";
 import { Badge } from "@/components/ui/badge";
@@ -59,19 +60,9 @@ const audiences = [
 export function LandingPage() {
   return (
     <div className="relative flex min-h-full flex-col">
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.08),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
-      </div>
-
-      <header className="border-b border-border/60 bg-background/70 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link className="flex items-center gap-2" href="/">
-            <Scale className="size-5 text-primary" />
-            <span className="font-semibold tracking-tight">
-              Precedent Intelligence
-            </span>
-          </Link>
+      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
+          <BrandMark href="/" />
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
             <a className="transition-colors hover:text-foreground" href="#como-funciona">
               Como funciona
@@ -86,8 +77,24 @@ export function LandingPage() {
               Regras
             </a>
           </nav>
-          <Button size="sm">Entrar na lista</Button>
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="ghost">
+              <Link href="/sign-in">Entrar</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/sign-up">Criar conta</Link>
+            </Button>
+          </div>
         </div>
+        <nav
+          aria-label="Seções da página"
+          className="flex gap-4 overflow-x-auto border-t border-border/60 px-6 py-2 text-xs text-muted-foreground md:hidden"
+        >
+          <a href="#como-funciona">Como funciona</a>
+          <a href="#produto">Produto</a>
+          <a href="#precos">Preços</a>
+          <a href="#regras">Regras</a>
+        </nav>
       </header>
 
       <main className="flex-1">
@@ -97,7 +104,7 @@ export function LandingPage() {
               Inteligência de precedentes por tema
             </Badge>
             <div className="space-y-4">
-              <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+              <h1 className="max-w-xl font-folio text-4xl leading-tight tracking-tight text-balance sm:text-5xl">
                 O último metro do trabalho jurídico, com precedente que existe
               </h1>
               <p className="max-w-xl text-lg leading-8 text-muted-foreground">
@@ -107,9 +114,11 @@ export function LandingPage() {
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button size="lg">
-                Solicitar acesso
-                <ArrowRight className="size-4" />
+              <Button asChild size="lg">
+                <Link href="/sign-up">
+                  Entrar no escritório
+                  <ArrowRight className="size-4" />
+                </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <a href="#como-funciona">Ver como funciona</a>
@@ -303,12 +312,14 @@ export function LandingPage() {
               o primeiro público.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Button size="lg">
-                Entrar na lista de espera
-                <ArrowRight className="size-4" />
+              <Button asChild size="lg">
+                <Link href="/sign-up">
+                  Criar conta
+                  <ArrowRight className="size-4" />
+                </Link>
               </Button>
-              <Button size="lg" variant="outline">
-                Falar com o time
+              <Button asChild size="lg" variant="outline">
+                <Link href="/sign-in">Entrar</Link>
               </Button>
             </div>
           </div>
@@ -317,15 +328,12 @@ export function LandingPage() {
 
       <footer className="border-t border-border/60">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-2">
-            <Scale className="size-4 text-primary" />
-            <span>Precedent Intelligence</span>
-          </div>
+          <BrandMark href="/" />
           <p>Assistente de consistência jurídica — não substitui o juiz.</p>
         </div>
         <Separator />
         <div className="mx-auto max-w-6xl px-6 py-4 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Precedent Intelligence. Todos os direitos
+          © <CopyrightYear /> Precedent Intelligence. Todos os direitos
           reservados.
         </div>
       </footer>

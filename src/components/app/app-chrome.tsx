@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
-import { Scale } from "lucide-react";
+import { Plus } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
@@ -18,21 +20,20 @@ export function AppChrome({
   const isCasos =
     pathname === "/app" ||
     (pathname.startsWith("/app/casos") && pathname !== "/app/casos/novo");
-  const isNovo = pathname === "/app/casos/novo";
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border/80 bg-background/80 backdrop-blur-md">
-      <div className="flex h-14 items-center gap-4 px-4 sm:px-6">
-        <Link
-          className="flex items-center gap-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    <header className="sticky top-0 z-20 border-b border-border/80 bg-background/85 backdrop-blur-md">
+      <div className="flex h-14 items-center gap-3 px-4 sm:gap-4 sm:px-6">
+        <BrandMark
+          className="hidden sm:flex"
+          compact={false}
           href={hasOffice ? "/app" : "/app/escritorio"}
-        >
-          <Scale className="size-4 text-primary" />
-          <span className="hidden font-medium tracking-tight sm:inline">
-            Precedent Intelligence
-          </span>
-          <span className="font-medium tracking-tight sm:hidden">PI</span>
-        </Link>
+        />
+        <BrandMark
+          className="sm:hidden"
+          compact
+          href={hasOffice ? "/app" : "/app/escritorio"}
+        />
 
         {hasOffice ? (
           <nav
@@ -40,42 +41,43 @@ export function AppChrome({
             className="flex items-center gap-1 text-sm"
           >
             <Link
+              aria-current={isCasos ? "page" : undefined}
               className={cn(
                 "rounded-md px-2.5 py-1.5 outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
                 isCasos
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
               )}
               href="/app"
             >
               Casos
-            </Link>
-            <Link
-              className={cn(
-                "rounded-md px-2.5 py-1.5 outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
-                isNovo
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              href="/app/casos/novo"
-            >
-              Novo caso
             </Link>
           </nav>
         ) : null}
 
         <div className="ml-auto flex items-center gap-2">
           {hasOffice ? (
-            <OrganizationSwitcher
-              appearance={{
-                elements: {
-                  rootBox: "flex items-center",
-                  organizationSwitcherTrigger:
-                    "rounded-md border border-border bg-background px-2 py-1 text-sm",
-                },
-              }}
-              hidePersonal
-            />
+            <>
+              <Button asChild size="sm">
+                <Link href="/app/casos/novo">
+                  <Plus />
+                  <span className="hidden sm:inline">Novo caso</span>
+                  <span className="sm:hidden">Novo</span>
+                </Link>
+              </Button>
+              <OrganizationSwitcher
+                afterCreateOrganizationUrl="/app"
+                afterSelectOrganizationUrl="/app"
+                appearance={{
+                  elements: {
+                    rootBox: "flex items-center",
+                    organizationSwitcherTrigger:
+                      "rounded-md border border-border bg-background px-2 py-1 text-sm",
+                  },
+                }}
+                hidePersonal
+              />
+            </>
           ) : null}
           <UserButton />
         </div>

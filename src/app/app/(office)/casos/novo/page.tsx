@@ -71,7 +71,7 @@ export default function NewCasePage() {
           </FormField>
         </div>
 
-        <div>
+        <div className="sticky bottom-4 flex justify-end rounded-lg border border-border bg-background/90 p-3 backdrop-blur-md">
           <Button type="submit">Continuar para confirmação</Button>
         </div>
       </form>

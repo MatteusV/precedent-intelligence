@@ -306,7 +306,7 @@ function WorkflowFeaturedStep({ activeIndex }: { activeIndex: number }) {
       <AnimatePresence mode="wait">
         <motion.article
           animate={{ opacity: 1, y: 0 }}
-          className="overflow-hidden rounded-2xl border border-border/60 border-l-2 border-l-primary bg-card/70 p-6 shadow-[0_0_0_1px_rgba(245,158,11,0.12)] backdrop-blur-sm sm:p-8"
+          className="overflow-hidden rounded-2xl border border-border/60 border-l-2 border-l-primary bg-card/70 p-6 ring-1 ring-primary/20 backdrop-blur-sm sm:p-8"
           exit={{ opacity: 0, y: -20 }}
           initial={{ opacity: 0, y: 24 }}
           key={step.step}

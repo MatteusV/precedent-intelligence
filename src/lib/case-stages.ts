@@ -21,6 +21,41 @@ export interface CaseStageProgress {
   readonly state: CaseStageState;
 }
 
+export interface CaseStageCopy {
+  readonly label: string;
+  readonly description: string;
+  readonly action: string;
+}
+
+export interface CaseNextAction {
+  readonly stageId: CaseStageId | null;
+  readonly label: string;
+  readonly href: string;
+}
+
+export const CASE_STAGE_COPY: Record<CaseStageId, CaseStageCopy> = {
+  material: {
+    label: "Material",
+    description: "Fatos e contexto do cliente",
+    action: "Cole o material",
+  },
+  theme: {
+    label: "Tema e pedido",
+    description: "Recorte que o dossiê vai julgar",
+    action: "Confirmar tema",
+  },
+  dossier: {
+    label: "Dossiê",
+    description: "Padrão citado daquele juízo",
+    action: "Gerar dossiê",
+  },
+  petition: {
+    label: "Petição",
+    description: "Peça ancorada no dossiê",
+    action: "Gerar petição",
+  },
+};
+
 /**
  * Returns whether a dossier generation job is still running.
  */
@@ -75,9 +110,9 @@ export function getCompletedStageIds(
 }
 
 /**
- * Returns the stage the lawyer should work on next.
+ * Returns the stage the lawyer should work on next, or null when the file is complete.
  */
-export function getCurrentStageId(input: CaseStageInput): CaseStageId {
+export function getCurrentStageId(input: CaseStageInput): CaseStageId | null {
   if (input.status !== "confirmed") {
     return "theme";
   }
@@ -86,7 +121,11 @@ export function getCurrentStageId(input: CaseStageInput): CaseStageId {
     return "dossier";
   }
 
-  return "petition";
+  if (!input.hasCurrentPetition) {
+    return "petition";
+  }
+
+  return null;
 }
 
 /**
@@ -99,7 +138,7 @@ export function getCaseStages(
   const completed = new Set(getCompletedStageIds(input));
 
   return CASE_STAGE_IDS.map((id) => {
-    if (id === currentId) {
+    if (currentId && id === currentId) {
       return { id, state: "current" };
     }
 
@@ -121,4 +160,54 @@ export function getNewCaseStages(): readonly CaseStageProgress[] {
     { id: "dossier", state: "upcoming" },
     { id: "petition", state: "upcoming" },
   ];
+}
+
+/**
+ * Returns the lawyer-facing next step for a case spine.
+ */
+export function getCaseNextAction(
+  caseId: string,
+  stages: readonly CaseStageProgress[],
+): CaseNextAction {
+  const current = stages.find((stage) => stage.state === "current");
+
+  if (!current) {
+    return {
+      stageId: null,
+      label: "Peça pronta",
+      href: `/app/casos/${caseId}#peticao`,
+    };
+  }
+
+  return {
+    stageId: current.id,
+    label: CASE_STAGE_COPY[current.id].action,
+    href: getCaseStageHref(caseId, current.id, current.state) ?? `/app/casos/${caseId}`,
+  };
+}
+
+/**
+ * Returns an in-file or confirmation href for a reachable stage.
+ */
+export function getCaseStageHref(
+  caseId: string,
+  stageId: CaseStageId,
+  state: CaseStageState,
+): string | undefined {
+  if (state === "upcoming") {
+    return undefined;
+  }
+
+  if (stageId === "theme" && state === "current") {
+    return `/app/casos/${caseId}/confirmar`;
+  }
+
+  const fragment: Record<CaseStageId, string> = {
+    material: "material",
+    theme: "pedido",
+    dossier: "dossie",
+    petition: "peticao",
+  };
+
+  return `/app/casos/${caseId}#${fragment[stageId]}`;
 }

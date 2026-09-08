@@ -1,3 +1,5 @@
+import { SectionLabel } from "@/components/app/section-label";
+
 /**
  * Title block for authenticated workspace pages.
  */
@@ -15,11 +17,7 @@ export function PageHeader({
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0 space-y-1">
-        {eyebrow ? (
-          <p className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase">
-            {eyebrow}
-          </p>
-        ) : null}
+        {eyebrow ? <SectionLabel>{eyebrow}</SectionLabel> : null}
         <h1 className="font-folio text-3xl leading-tight tracking-tight text-balance">
           {title}
         </h1>

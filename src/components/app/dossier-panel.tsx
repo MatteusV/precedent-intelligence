@@ -1,5 +1,6 @@
 import { Folio } from "@/components/app/folio";
 import { StanceMark } from "@/components/app/stance-mark";
+import { WorkSection } from "@/components/app/work-section";
 import { Button } from "@/components/ui/button";
 import { generateDossierAction } from "@/app/actions/case-actions";
 import { isDossierJobInFlight } from "@/lib/case-stages";
@@ -20,6 +21,13 @@ interface DossierView {
   readonly precedents: readonly DossierPrecedentView[];
 }
 
+const JOB_STATUS_COPY: Record<string, string> = {
+  retrieving: "Recuperando precedentes",
+  ingesting: "Ingerindo acervo",
+  analyzing: "Analisando o padrão",
+  pending: "Na fila",
+};
+
 /**
  * Cited dossiê on the folio reading surface.
  */
@@ -33,36 +41,33 @@ export function DossierPanel({
   readonly dossierJobStatus: string | null;
 }) {
   const isGenerating = isDossierJobInFlight(dossierJobStatus);
+  const statusLabel = dossierJobStatus
+    ? JOB_STATUS_COPY[dossierJobStatus]
+    : null;
 
   return (
-    <section className="space-y-4 scroll-mt-24" id="dossie">
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase">
-            Dossiê
-          </p>
-          <h2 className="font-folio text-2xl tracking-tight">Padrão daquele juízo</h2>
-        </div>
-        {isGenerating ? (
-          <p className="font-mono text-xs text-primary">
-            {dossierJobStatus === "retrieving" && "Recuperando"}
-            {dossierJobStatus === "ingesting" && "Ingerindo"}
-            {dossierJobStatus === "analyzing" && "Analisando"}
-            {dossierJobStatus === "pending" && "Na fila"}
-          </p>
-        ) : null}
-      </div>
-
+    <WorkSection
+      actions={
+        isGenerating && statusLabel ? (
+          <p className="font-mono text-xs text-primary">{statusLabel}</p>
+        ) : null
+      }
+      id="dossie"
+      label="Dossiê"
+      title="Padrão daquele juízo"
+    >
       {!dossier ? (
-        <form action={generateDossierAction}>
-          <input name="legalCaseId" type="hidden" value={legalCaseId} />
-          <p className="mb-4 text-sm text-muted-foreground">
-            Sem precedente no dossiê, não há afirmação de jurisprudência.
-          </p>
-          <Button disabled={isGenerating} type="submit">
-            Gerar dossiê
-          </Button>
-        </form>
+        <div className="rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
+          <form action={generateDossierAction}>
+            <input name="legalCaseId" type="hidden" value={legalCaseId} />
+            <p className="mb-4 max-w-xl text-sm leading-6 text-muted-foreground">
+              Sem precedente no dossiê, não há afirmação de jurisprudência.
+            </p>
+            <Button disabled={isGenerating} type="submit">
+              {isGenerating ? "Gerando dossiê" : "Gerar dossiê"}
+            </Button>
+          </form>
+        </div>
       ) : (
         <Folio>
           <p className="text-lg leading-8">{dossier.patternSummary}</p>
@@ -77,7 +82,10 @@ export function DossierPanel({
 
           <ol className="mt-8 divide-y divide-folio-ink/15">
             {dossier.precedents.map((precedent) => (
-              <li className="grid gap-3 py-5 sm:grid-cols-[7rem_minmax(0,1fr)]" key={precedent.id}>
+              <li
+                className="grid gap-3 py-5 sm:grid-cols-[7rem_minmax(0,1fr)]"
+                key={precedent.id}
+              >
                 <div className="space-y-1">
                   <StanceMark stance={precedent.stance} />
                   <p className="font-mono text-[11px] text-folio-ink/55">
@@ -98,6 +106,6 @@ export function DossierPanel({
           </Button>
         </form>
       ) : null}
-    </section>
+    </WorkSection>
   );
 }

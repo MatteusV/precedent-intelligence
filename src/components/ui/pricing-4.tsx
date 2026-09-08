@@ -45,7 +45,7 @@ const plans: Plan[] = [
     ],
     btn: {
       text: "Começar teste gratuito",
-      href: "#",
+      href: "/sign-up",
     },
   },
   {
@@ -67,7 +67,7 @@ const plans: Plan[] = [
     ],
     btn: {
       text: "Assinar Profissional",
-      href: "#",
+      href: "/sign-up",
     },
   },
   {
@@ -88,7 +88,7 @@ const plans: Plan[] = [
     ],
     btn: {
       text: "Falar com vendas",
-      href: "#",
+      href: "/sign-up",
     },
   },
 ];

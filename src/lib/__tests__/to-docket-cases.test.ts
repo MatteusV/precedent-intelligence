@@ -8,6 +8,7 @@ describe("toDocketCases", () => {
         id: "c1",
         status: "draft",
         tribunal: "tjsp",
+        judgeName: null,
         updatedAt: new Date("2026-09-07T12:00:00Z"),
         currentDossierId: null,
         dossierJobStatus: null,
@@ -18,6 +19,11 @@ describe("toDocketCases", () => {
 
     expect(docketCase.title).toBe("Aguardando confirmação de tema");
     expect(docketCase.tribunalLabel).toBe("TJSP");
+    expect(docketCase.nextAction).toEqual({
+      stageId: "theme",
+      label: "Confirmar tema",
+      href: "/app/casos/c1/confirmar",
+    });
     expect(docketCase.stages.map((stage) => stage.state)).toEqual([
       "complete",
       "current",

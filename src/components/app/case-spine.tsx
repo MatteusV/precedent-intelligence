@@ -1,51 +1,10 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { CaseStageId, CaseStageProgress } from "@/lib/case-stages";
-
-const STAGE_COPY: Record<
-  CaseStageId,
-  { readonly label: string; readonly description: string }
-> = {
-  material: {
-    label: "Material",
-    description: "Fatos e contexto do cliente",
-  },
-  theme: {
-    label: "Tema e pedido",
-    description: "Recorte que o dossiê vai julgar",
-  },
-  dossier: {
-    label: "Dossiê",
-    description: "Padrão citado daquele juízo",
-  },
-  petition: {
-    label: "Petição",
-    description: "Peça ancorada no dossiê",
-  },
-};
-
-function getStageHref(
-  caseId: string,
-  stageId: CaseStageId,
-  state: CaseStageProgress["state"],
-): string | undefined {
-  if (state === "upcoming") {
-    return undefined;
-  }
-
-  if (stageId === "theme" && state === "current") {
-    return `/app/casos/${caseId}/confirmar`;
-  }
-
-  const fragment: Record<CaseStageId, string> = {
-    material: "material",
-    theme: "pedido",
-    dossier: "dossie",
-    petition: "peticao",
-  };
-
-  return `/app/casos/${caseId}#${fragment[stageId]}`;
-}
+import {
+  CASE_STAGE_COPY,
+  getCaseStageHref,
+  type CaseStageProgress,
+} from "@/lib/case-stages";
 
 /**
  * Case-file spine: the product workflow encoded as a binding, not decoration.
@@ -75,10 +34,10 @@ export function CaseSpine({
                 stage.state === "current" &&
                   "bg-primary ring-2 ring-primary/40",
               )}
-              title={STAGE_COPY[stage.id].label}
+              title={CASE_STAGE_COPY[stage.id].label}
             />
             <span className="sr-only">
-              {STAGE_COPY[stage.id].label}: {stage.state}
+              {CASE_STAGE_COPY[stage.id].label}: {stage.state}
             </span>
           </li>
         ))}
@@ -94,9 +53,9 @@ export function CaseSpine({
       />
       {stages.map((stage) => {
         const href = caseId
-          ? getStageHref(caseId, stage.id, stage.state)
+          ? getCaseStageHref(caseId, stage.id, stage.state)
           : undefined;
-        const copy = STAGE_COPY[stage.id];
+        const copy = CASE_STAGE_COPY[stage.id];
         const content = (
           <>
             <span
@@ -130,6 +89,7 @@ export function CaseSpine({
           <li key={stage.id}>
             {href ? (
               <Link
+                aria-current={stage.state === "current" ? "step" : undefined}
                 className="flex items-start gap-3 rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                 href={href}
               >

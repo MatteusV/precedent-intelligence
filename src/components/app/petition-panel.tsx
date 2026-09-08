@@ -1,4 +1,5 @@
 import { Folio } from "@/components/app/folio";
+import { WorkSection } from "@/components/app/work-section";
 import { Button } from "@/components/ui/button";
 import { generatePetitionAction } from "@/app/actions/case-actions";
 
@@ -32,23 +33,17 @@ export function PetitionPanel({
   const needsGeneration = !petition || petition.status === "stale";
 
   return (
-    <section className="space-y-4 scroll-mt-24" id="peticao">
-      <div>
-        <p className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase">
-          Petição
-        </p>
-        <h2 className="font-folio text-2xl tracking-tight">Peça ancorada</h2>
-      </div>
-
+    <WorkSection id="peticao" label="Petição" title="Peça ancorada">
       {needsGeneration ? (
-        <div className="space-y-4">
+        <div className="rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
           {petition?.status === "stale" ? (
-            <p className="text-sm text-stamp">
+            <p className="mb-4 text-sm text-stamp">
               A petição anterior ficou obsoleta após um novo dossiê.
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              A peça cita só o que está no dossiê. Sem âncora, o trecho vira hipótese.
+            <p className="mb-4 max-w-xl text-sm leading-6 text-muted-foreground">
+              A peça cita só o que está no dossiê. Sem âncora, o trecho vira
+              hipótese.
             </p>
           )}
           <form action={generatePetitionAction}>
@@ -83,6 +78,6 @@ export function PetitionPanel({
           </div>
         </Folio>
       )}
-    </section>
+    </WorkSection>
   );
 }

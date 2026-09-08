@@ -168,13 +168,22 @@
   --stamp: #c45c3e;
   --sidebar: #161410;
   --sidebar-foreground: #f4efe6;
+  --sidebar-primary: #d4a24a;
+  --sidebar-primary-foreground: #1a160e;
+  --sidebar-accent: #221f1a;
+  --sidebar-accent-foreground: #f4efe6;
   --sidebar-border: #2c2922;
+  --sidebar-ring: #d4a24a;
   background-color: var(--background);
   background-image: radial-gradient(
     ellipse 80% 45% at 50% -8%,
     rgb(212 162 74 / 0.07),
     transparent 55%
   );
+}
+
+.app-desk ::selection {
+  background: color-mix(in oklab, var(--primary) 30%, transparent);
 }
 
 .folio-sheet {

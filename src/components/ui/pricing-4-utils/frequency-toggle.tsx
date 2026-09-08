@@ -16,6 +16,7 @@ export function FrequencyToggle({
   return (
     <div className="flex items-center rounded-lg border border-border/60 bg-muted/40 p-1">
       <button
+        aria-pressed={frequency === "monthly"}
         className={cn(
           "rounded-md px-4 py-2 text-sm font-medium transition-colors",
           frequency === "monthly"
@@ -28,6 +29,7 @@ export function FrequencyToggle({
         Mensal
       </button>
       <button
+        aria-pressed={frequency === "yearly"}
         className={cn(
           "rounded-md px-4 py-2 text-sm font-medium transition-colors",
           frequency === "yearly"
