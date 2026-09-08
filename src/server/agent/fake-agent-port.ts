@@ -109,7 +109,7 @@ export function buildInferPrompt(input: InferInput): string {
 
 export function buildDossierPrompt(input: DossierPromptInput): string {
   return [
-    "Responda apenas com JSON válido:",
+    "Você é um assistente jurídico. Responda APENAS com JSON válido, sem markdown, sem explicação e sem usar ferramentas.",
     '{"patternSummary":"...","organPatternLabel":"...","coverageNote":"opcional","precedents":[{"judgmentId":"id","stance":"supporting|opposing|dissent","excerpt":"trecho literal"}]}',
     `Pedido confirmado: ${input.claim}`,
     `Tema: ${input.themeName}`,

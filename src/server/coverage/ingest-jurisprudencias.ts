@@ -3,6 +3,12 @@ import { prisma } from "@/lib/db";
 import { computeContentHash } from "@/lib/content-hash";
 import { readJurisprudenciasApiKey } from "@/lib/env";
 import type { CandidateFilters } from "./retrieve-candidates";
+import {
+  JURISPRUDENCIAS_API_BASE_URL,
+  JURISPRUDENCIAS_SEARCH_MAX_RESULTS,
+  mapSearchResponseToPayloads,
+  type JurisprudenciasSearchResponse,
+} from "./jurisprudencias-api-mapper";
 
 export interface ExternalJudgmentPayload {
   tribunal: string;
@@ -34,30 +40,30 @@ export class JurisprudenciasApiClient implements JurisprudenciasClient {
   async search(
     filters: CandidateFilters & { query: string },
   ): Promise<ExternalJudgmentPayload[]> {
-    const response = await fetch("https://api.jurisprudencias.ai/v1/search", {
-      method: "POST",
+    const url = new URL(
+      `${JURISPRUDENCIAS_API_BASE_URL}/courts/${filters.tribunal}/decisions`,
+    );
+    url.searchParams.set("q", filters.query);
+    url.searchParams.set("page", "0");
+    url.searchParams.set("sort_by", "trial_date");
+
+    const response = await fetch(url, {
+      method: "GET",
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        tribunal: filters.tribunal,
-        query: filters.query,
-        judge: filters.judgeName ?? undefined,
-        organ: filters.organName ?? undefined,
-        limit: 20,
-      }),
     });
 
     if (!response.ok) {
       throw new Error(`Jurisprudências.ai request failed: ${response.status}`);
     }
 
-    const payload = (await response.json()) as {
-      results?: ExternalJudgmentPayload[];
-    };
+    const payload = (await response.json()) as JurisprudenciasSearchResponse;
 
-    return payload.results ?? [];
+    return mapSearchResponseToPayloads(payload, filters.tribunal).slice(
+      0,
+      JURISPRUDENCIAS_SEARCH_MAX_RESULTS,
+    );
   }
 }
 
@@ -125,15 +131,42 @@ export async function upsertJudgmentsFromApi(
   return inserted;
 }
 
+export interface IngestOnCoverageMissResult {
+  readonly inserted: number;
+  readonly failed: boolean;
+  readonly failureReason?: string;
+}
+
+export function formatIngestFailureNote(
+  failureReason?: string,
+): string | undefined {
+  if (!failureReason) {
+    return undefined;
+  }
+
+  if (failureReason.includes("429")) {
+    return "A busca na Jurisprudências.ai não foi concluída: limite diário de requisições atingido. Tente novamente após o reset do plano ou use outro tribunal com acervo local.";
+  }
+
+  if (failureReason.includes("401")) {
+    return "A busca na Jurisprudências.ai não foi concluída: token de API inválido ou ausente.";
+  }
+
+  return "A busca na Jurisprudências.ai não foi concluída. O dossiê foi montado apenas com o acervo local.";
+}
+
 export async function ingestOnCoverageMiss(
   filters: CandidateFilters & { query: string },
   client: JurisprudenciasClient,
-): Promise<{ inserted: number; failed: boolean }> {
+): Promise<IngestOnCoverageMissResult> {
   try {
     const results = await client.search(filters);
     const inserted = await upsertJudgmentsFromApi(results, filters.themeId);
     return { inserted, failed: false };
-  } catch {
-    return { inserted: 0, failed: true };
+  } catch (error) {
+    const failureReason =
+      error instanceof Error ? error.message : "Jurisprudências.ai request failed";
+
+    return { inserted: 0, failed: true, failureReason };
   }
 }

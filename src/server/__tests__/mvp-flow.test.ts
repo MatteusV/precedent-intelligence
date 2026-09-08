@@ -167,6 +167,7 @@ describe("coverage ingest failure", () => {
 
     expect(result.failed).toBe(true);
     expect(result.inserted).toBe(0);
+    expect(result.failureReason).toContain("jurisprudencias down");
   });
 });
 

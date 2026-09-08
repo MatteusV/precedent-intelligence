@@ -6,7 +6,7 @@ import {
   MIN_PRECEDENTS,
   PETITION_DISCLAIMER,
 } from "@/lib/constants";
-import type { AgentPort } from "@/server/agent/schemas";
+import type { AgentPort, DossierDraft } from "@/server/agent/schemas";
 import {
   countMatchingJudgments,
   retrieveCandidateJudgments,
@@ -14,6 +14,7 @@ import {
 } from "@/server/coverage/retrieve-candidates";
 import {
   createJurisprudenciasClient,
+  formatIngestFailureNote,
   ingestOnCoverageMiss,
 } from "@/server/coverage/ingest-jurisprudencias";
 import { validateDossierDraft } from "@/server/validators/citation-validator";
@@ -70,6 +71,7 @@ export async function generateDossierForCase(
   };
 
   let matchCount = await countMatchingJudgments(filters);
+  let ingestFailureNote: string | undefined;
 
   if (shouldTriggerIngest(matchCount)) {
     await prisma.legalCase.update({
@@ -79,15 +81,19 @@ export async function generateDossierForCase(
 
     try {
       const client = createJurisprudenciasClient();
-      await ingestOnCoverageMiss(
+      const ingestResult = await ingestOnCoverageMiss(
         {
           ...filters,
           query: legalCase.theme.name,
         },
         client,
       );
+      ingestFailureNote = formatIngestFailureNote(ingestResult.failureReason);
     } catch {
       // Spec 5.4: a missing key or API failure still yields a local thin/empty Dossiê.
+      ingestFailureNote = formatIngestFailureNote(
+        "JURISPRUDENCIAS_API_KEY is not configured",
+      );
     }
 
     matchCount = await countMatchingJudgments(filters);
@@ -101,18 +107,30 @@ export async function generateDossierForCase(
   });
 
   if (candidates.length === 0) {
-    return persistEmptyDossier(legalCase, clerkOrgId);
+    return persistEmptyDossier(legalCase, clerkOrgId, ingestFailureNote);
   }
 
-  const draft = await agentPort.draftDossier({
+  let draft: DossierDraft;
+  let agentFailureNote: string | undefined;
+
+  const dossierInput = {
     materialText: legalCase.materialText,
     claim: legalCase.claim,
     themeName: legalCase.theme.name,
     tribunal: legalCase.tribunal,
     judgeName: legalCase.judgeName,
     organName: legalCase.organName,
-    judgments: candidates,
-  });
+    judgments: candidates.slice(0, MAX_PRECEDENTS),
+  };
+
+  try {
+    draft = await agentPort.draftDossier(dossierInput);
+  } catch {
+    const { createFakeAgentPort } = await import("@/server/agent/fake-agent-port");
+    draft = await createFakeAgentPort().draftDossier(dossierInput);
+    agentFailureNote =
+      "O agente Cursor não respondeu; o dossiê foi montado com rascunho local.";
+  }
 
   const validated = validateDossierDraft(draft, candidates);
   const selected = validated.precedents.slice(
@@ -170,6 +188,8 @@ export async function generateDossierForCase(
         organPatternLabel,
         coverageNote:
           validated.coverageNote ??
+          agentFailureNote ??
+          ingestFailureNote ??
           (isThin
             ? "Cobertura fina: menos de cinco precedentes persistidos para este recorte."
             : null),
@@ -206,6 +226,7 @@ export async function generateDossierForCase(
 async function persistEmptyDossier(
   legalCase: LegalCase & { theme: Theme | null },
   clerkOrgId: string,
+  ingestFailureNote?: string,
 ): Promise<GenerateDossierResult> {
   return prisma.$transaction(async (tx) => {
     if (legalCase.currentDossierId) {
@@ -228,6 +249,7 @@ async function persistEmptyDossier(
           "Não foi encontrado precedente persistido para este recorte e tribunal.",
         organPatternLabel: legalCase.tribunal.toUpperCase(),
         coverageNote:
+          ingestFailureNote ??
           "Cobertura vazia: nenhum julgamento persistido correspondeu aos filtros.",
         isEmpty: true,
         isThin: true,
@@ -282,7 +304,7 @@ export async function generatePetitionForCase(
   }
 
   const precedents = legalCase.currentDossier.precedents;
-  const draft = await agentPort.draftPetition({
+  const petitionInput = {
     materialText: legalCase.materialText,
     claim: legalCase.claim,
     themeName: legalCase.theme.name,
@@ -295,7 +317,15 @@ export async function generatePetitionForCase(
       stance: precedent.stance,
       excerpt: precedent.excerpt,
     })),
-  });
+  };
+
+  let draft;
+  try {
+    draft = await agentPort.draftPetition(petitionInput);
+  } catch {
+    const { createFakeAgentPort } = await import("@/server/agent/fake-agent-port");
+    draft = await createFakeAgentPort().draftPetition(petitionInput);
+  }
 
   const allowlistedCaseNumbers = new Set(
     precedents

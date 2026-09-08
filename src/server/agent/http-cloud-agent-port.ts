@@ -5,6 +5,7 @@ import {
   buildPetitionPrompt,
   parseJsonBlock,
 } from "./fake-agent-port";
+import { resolveCloudAgentText } from "./cloud-agent-response";
 import {
   dossierDraftSchema,
   inferResultSchema,
@@ -45,29 +46,40 @@ export class HttpCloudAgentPort implements AgentPort {
   }
 
   private async runPrompt(message: string): Promise<string> {
-    const completed = await Agent.prompt(message, {
+    const agent = await Agent.create({
       apiKey: this.apiKey,
-      tools: [],
       cloud: {
-        env: { type: "cloud" },
+        repos: [],
       },
     });
 
-    if (completed.status !== "finished") {
-      throw new CursorAgentError(
-        `Cloud Cursor agent finished with status ${completed.status}`,
-        { operation: "HttpCloudAgentPort.runPrompt" },
-      );
-    }
-
-    const text = completed.result?.trim();
-    if (!text) {
-      throw new CursorAgentError("Cloud Cursor agent returned empty text", {
-        operation: "HttpCloudAgentPort.runPrompt",
+    try {
+      const run = await agent.send(message, {
+        mode: "plan",
       });
-    }
+      const completed = await run.wait();
 
-    return text;
+      if (completed.status !== "finished") {
+        throw new CursorAgentError(
+          `Cloud Cursor agent finished with status ${completed.status}`,
+          { operation: "HttpCloudAgentPort.runPrompt" },
+        );
+      }
+
+      const text = await resolveCloudAgentText(run, completed, async () =>
+        Agent.messages.list(agent.agentId, { apiKey: this.apiKey }),
+      );
+
+      if (!text) {
+        throw new CursorAgentError("Cloud Cursor agent returned empty text", {
+          operation: "HttpCloudAgentPort.runPrompt",
+        });
+      }
+
+      return text;
+    } finally {
+      await agent.close();
+    }
   }
 }
 
