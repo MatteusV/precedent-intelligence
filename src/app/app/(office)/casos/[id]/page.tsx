@@ -1,13 +1,22 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CaseWorkbench } from "@/components/app/case-workbench";
 import { DossierPanel } from "@/components/app/dossier-panel";
+import { HideCaseButton } from "@/components/app/hide-case-button";
+import { NextActionBanner } from "@/components/app/next-action-banner";
 import { PageHeader } from "@/components/app/page-header";
 import { PetitionPanel } from "@/components/app/petition-panel";
+import { WorkSection } from "@/components/app/work-section";
 import { Button } from "@/components/ui/button";
-import { getCaseStages, toCaseStageInput } from "@/lib/case-stages";
+import {
+  getCaseNextAction,
+  getCaseStages,
+  toCaseStageInput,
+} from "@/lib/case-stages";
 import { getTribunalBySlug } from "@/lib/tribunals";
 import { getCaseForOffice, requireOfficeContext } from "@/server/case/case-service";
+import OfficeLoading from "../../loading";
 
 interface CaseDetailPageProps {
   params: Promise<{ id: string }>;
@@ -17,7 +26,15 @@ export const metadata = {
   title: "Caso",
 };
 
-export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
+export default function CaseDetailPage({ params }: CaseDetailPageProps) {
+  return (
+    <Suspense fallback={<OfficeLoading />}>
+      <CaseDetailContent params={params} />
+    </Suspense>
+  );
+}
+
+async function CaseDetailContent({ params }: CaseDetailPageProps) {
   const { id } = await params;
   const office = await requireOfficeContext();
   const legalCase = await getCaseForOffice(id, office.clerkOrgId);
@@ -27,6 +44,7 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
   }
 
   const stages = getCaseStages(toCaseStageInput(legalCase));
+  const nextAction = getCaseNextAction(legalCase.id, stages);
   const tribunalLabel =
     getTribunalBySlug(legalCase.tribunal)?.label ??
     legalCase.tribunal.toUpperCase();
@@ -45,6 +63,7 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
   return (
     <CaseWorkbench caseId={legalCase.id} stages={stages}>
       <PageHeader
+        actions={<HideCaseButton legalCaseId={legalCase.id} />}
         description={
           [tribunalLabel, legalCase.judgeName, legalCase.organName]
             .filter(Boolean)
@@ -54,21 +73,21 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
         title={legalCase.theme?.name ?? "Rascunho"}
       />
 
-      <section className="scroll-mt-24 space-y-3" id="material">
-        <p className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase">
-          Material
-        </p>
-        <p className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
-          {legalCase.materialText}
-        </p>
-      </section>
+      <NextActionBanner action={nextAction} />
 
-      <section className="scroll-mt-24 space-y-3" id="pedido">
-        <p className="font-mono text-[11px] tracking-[0.18em] text-primary uppercase">
-          Tema e pedido
-        </p>
+      <WorkSection id="material" label="Material">
+        <div className="rounded-lg border border-border bg-card/40 px-4 py-4">
+          <p className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
+            {legalCase.materialText}
+          </p>
+        </div>
+      </WorkSection>
+
+      <WorkSection id="pedido" label="Tema e pedido">
         {legalCase.claim ? (
-          <p className="text-sm leading-7">{legalCase.claim}</p>
+          <div className="rounded-lg border border-border bg-card/40 px-4 py-4">
+            <p className="text-sm leading-7">{legalCase.claim}</p>
+          </div>
         ) : (
           <Button asChild>
             <Link href={`/app/casos/${legalCase.id}/confirmar`}>
@@ -76,7 +95,7 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
             </Link>
           </Button>
         )}
-      </section>
+      </WorkSection>
 
       {legalCase.status === "confirmed" ? (
         <DossierPanel
