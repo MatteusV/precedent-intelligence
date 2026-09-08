@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.1",
+    "@clerk/ui": "^1.32.2",
     "@cursor/sdk": "^1.0.31",
     "@neondatabase/serverless": "^1.1.0",
     "@number-flow/react": "^0.6.2",

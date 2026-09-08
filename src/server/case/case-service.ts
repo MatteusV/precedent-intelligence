@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import {
   isProductThemeName,
@@ -23,7 +24,7 @@ export async function requireOfficeContext(): Promise<OfficeContext> {
 
   const clerkOrgId = session.orgId;
   if (!clerkOrgId) {
-    throw new Error("Selecione um Escritório antes de continuar");
+    redirect("/app/escritorio");
   }
 
   return {
