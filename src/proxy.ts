@@ -1,28 +1,16 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-]);
-
-const isOfficeSetupRoute = createRouteMatcher(["/app/escritorio"]);
-
-const isAppRoute = createRouteMatcher(["/app(.*)"]);
-
 export default clerkMiddleware(async (auth, request) => {
-  if (isPublicRoute(request)) {
+  const pathname = request.nextUrl.pathname;
+
+  if (!pathname.startsWith("/app") || pathname === "/app/escritorio") {
     return;
   }
 
-  const authState = await auth.protect();
+  const authState = await auth();
 
-  if (
-    isAppRoute(request) &&
-    !isOfficeSetupRoute(request) &&
-    !authState.orgId
-  ) {
+  if (authState.userId && !authState.orgId) {
     return NextResponse.redirect(new URL("/app/escritorio", request.url));
   }
 });

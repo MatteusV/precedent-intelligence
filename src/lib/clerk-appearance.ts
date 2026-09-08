@@ -5,4 +5,12 @@ export const clerkAppearance = {
   variables: {
     borderRadius: "var(--radius)",
   },
+  options: {
+    unsafe_disableDevelopmentModeWarnings: true,
+  },
+  elements: {
+    footerAction: { display: "none" },
+    footerActionText: { display: "none" },
+    footerActionLink: { display: "none" },
+  },
 };

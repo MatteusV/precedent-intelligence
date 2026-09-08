@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -16,11 +17,7 @@ export interface OfficeContext {
 }
 
 export async function requireOfficeContext(): Promise<OfficeContext> {
-  const session = await auth();
-
-  if (!session.userId) {
-    throw new Error("Autenticação necessária");
-  }
+  const session = await auth.protect();
 
   const clerkOrgId = session.orgId;
   if (!clerkOrgId) {
@@ -200,13 +197,18 @@ export async function getCaseForOffice(
   });
 }
 
-export async function listCasesForOffice(clerkOrgId: string) {
+export const listCasesForOffice = cache(async (clerkOrgId: string) => {
   return prisma.legalCase.findMany({
     where: { clerkOrgId },
     orderBy: { updatedAt: "desc" },
-    include: { theme: true },
+    include: {
+      theme: true,
+      currentPetition: {
+        select: { status: true },
+      },
+    },
   });
-}
+});
 
 export async function listOutroThemesForOffice(clerkOrgId: string) {
   return prisma.theme.findMany({
