@@ -55,7 +55,7 @@ Isso exige dados **persistidos, estruturados e auditáveis**. Buscar na API em t
 | **Reprodutibilidade** | A regra “sem precedente no dossiê, não há afirmação” exige saber exatamente o que estava na base naquele momento |
 | **Padrão histórico** | “Como *este* relator decide” é agregação SQL sobre histórico, não busca pontual |
 
-**Regra:** API = ingestão e atualização do acervo. Request do advogado = 100% local.
+**Regra:** API = ingestão quando Cobertura < 5 (persist-then-cite). Request do advogado monta o Dossiê a partir do Postgres — nunca cita payload bruto da API.
 
 ### Fluxo
 
@@ -110,7 +110,7 @@ Com isso é possível auditar citações e explicar o que entrou em cada dossiê
 | Refresh periódico do acervo (Cron) | Sim |
 | Gap fill — relator/tribunal ausente na base | Sim |
 | Re-fetch — hash do conteúdo mudou | Sim |
-| Gerar dossiê para o advogado | **Não** |
+| Gerar dossiê para o advogado | **Não** chama API se Cobertura ≥ 5; **pode** chamar se < 5, persistindo antes de citar |
 | Montar padrão histórico do juiz | **Não** |
 | Redigir petição ou minuta | **Não** |
 
@@ -120,7 +120,7 @@ Com isso é possível auditar citações e explicar o que entrou em cada dossiê
 | --- | --- |
 | Ter banco e salvar estruturado? | **Sim, obrigatório** — é o core do produto |
 | Vetorizar? | **Sim, mas incremental** — começar sem; adicionar `pgvector` se o match semântico precisar |
-| Buscar na API todo request? | **Não** — API = ingestão; produto = Postgres |
+| Buscar na API todo request? | **Não** — só ingest-on-miss (< 5); depois o Dossiê é 100% local |
 
 Alinhado ao README: fato `Julgamento` e dimensões tema / órgão / juiz / resultado no Neon Postgres; “OLAP” = SQL; `pgvector` só se o SQL não der conta do casamento caso ↔ precedente.
 

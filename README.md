@@ -66,11 +66,11 @@ Regra de ouro: **sem precedente no dossiê, não há afirmação de jurisprudên
 
 Um único app. Sem segundo backend.
 
-- **Next.js** (App Router, TypeScript) — UI, ingestão, dossiê e peça
-- **Neon Postgres + Prisma** — fato `Julgamento` e dimensões tema / órgão / juiz / resultado; “OLAP” = SQL
-- **AI SDK + Vercel AI Gateway** — extração estruturada e redação só com o que está gravado
-- **Clerk** — auth e escritório
-- **Vercel Blob + Cron** — PDF e atualização de acervo
+- **Next.js** (App Router, TypeScript) — UI, intake, dossiê e petição
+- **Neon Postgres + Prisma** — pool global de `Julgamento`, Temas, Casos, Dossiês e Petições
+- **Cursor TypeScript SDK (`@cursor/sdk`)** — inferência de Tema/Pedido e rascunhos JSON de dossiê e petição, atrás de um `AgentPort` testável
+- **Clerk** — auth e Escritório (organizations)
+- **Jurisprudências.ai** — ingestão sob demanda quando Cobertura < 5 (persist-then-cite)
 
 Fora, de propósito: Python/Django, Spark, Snowflake, Redis, vector DB. `pgvector` só se o SQL não der conta do casamento caso ↔ precedente.
 
@@ -82,9 +82,7 @@ Saída: padrão histórico naquele recorte, 5–15 precedentes identificáveis, 
 
 ## Status
 
-App Next.js gerado. Ideia e stack travadas. Produto (dossiê + peça) ainda não implementado.
-
-O primeiro tema (um, estreito, com volume público de decisões) ainda precisa ser escolhido antes da implementação.
+App Next.js com landing pública, auth Clerk, schema Prisma e loop de produto (intake → confirmação → dossiê → petição ancorada). Provisionamento Neon/Clerk via Vercel Marketplace ainda necessário para rodar com banco real.
 
 ## Documentação
 

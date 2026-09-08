@@ -10,6 +10,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { ProcessDisplayCards } from "@/components/landing/process-display-cards";
+import { WorkflowScrollSteps } from "@/components/landing/workflow-scroll-steps";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,33 +22,6 @@ import {
 } from "@/components/ui/card";
 import { PricingSection } from "@/components/ui/pricing-4";
 import { Separator } from "@/components/ui/separator";
-
-const workflowSteps = [
-  {
-    step: "01",
-    title: "Decisões do tema",
-    description:
-      "Acervo curado, DataJud e upload de PDF entram no recorte jurídico escolhido.",
-  },
-  {
-    step: "02",
-    title: "Padrão do juiz",
-    description:
-      "O motor estrutura órgão, relator, resultado, tese e dispositivo por decisão.",
-  },
-  {
-    step: "03",
-    title: "Caso do usuário",
-    description:
-      "Fatos, pedido, polo e juízo informado alimentam a comparação com o histórico.",
-  },
-  {
-    step: "04",
-    title: "Peça ancorada",
-    description:
-      "Dossiê citado e petição ou minuta com trechos rastreáveis — sem ementa inventada.",
-  },
-];
 
 const painPoints = [
   "Caçar acórdãos espalhados em DataJud, diário e PDF",
@@ -84,8 +58,8 @@ const audiences = [
 
 export function LandingPage() {
   return (
-    <div className="relative flex min-h-full flex-col overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10">
+    <div className="relative flex min-h-full flex-col">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.08),transparent_55%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       </div>
@@ -189,7 +163,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="py-20" id="como-funciona">
+        <section className="scroll-mt-20 py-20" id="como-funciona">
           <div className="mx-auto max-w-6xl px-6">
             <div className="mx-auto max-w-2xl text-center">
               <Badge variant="outline">Fluxo</Badge>
@@ -202,21 +176,7 @@ export function LandingPage() {
               </p>
             </div>
 
-            <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {workflowSteps.map((item) => (
-                <Card className="border-border/60 bg-card/60 backdrop-blur-sm" key={item.step}>
-                  <CardHeader>
-                    <p className="font-mono text-xs text-primary">{item.step}</p>
-                    <CardTitle className="text-lg">{item.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm leading-6">
-                      {item.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <WorkflowScrollSteps />
           </div>
         </section>
 

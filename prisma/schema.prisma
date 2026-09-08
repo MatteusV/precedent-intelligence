@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ThemeKind {
+  product
+  outro
+}
+
+enum LegalCaseStatus {
+  draft
+  confirmed
+}
+
+enum IngestionStatus {
+  raw
+  structured
+  indexed
+}
+
+enum JudgmentSource {
+  seed
+  jurisprudencias_api
+  upload
+}
+
+enum PrecedentStance {
+  supporting
+  opposing
+  dissent
+}
+
+enum PetitionStatus {
+  current
+  stale
+}
+
+enum DossierJobStatus {
+  pending
+  retrieving
+  ingesting
+  analyzing
+  completed
+  failed
+}
+
+model Theme {
+  id         String    @id @default(cuid())
+  slug       String
+  name       String
+  kind       ThemeKind
+  clerkOrgId String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  judgments JudgmentTheme[]
+  cases     LegalCase[]
+
+  @@unique([slug, clerkOrgId])
+  @@index([kind, clerkOrgId])
+}
+
+model Judgment {
+  id              String           @id @default(cuid())
+  tribunal        String
+  organ           String?
+  rapporteur      String?
+  caseNumber      String?
+  judgmentDate    DateTime?
+  result          String?
+  holding         String?
+  ementa          String?
+  grounds         String?
+  operativePart   String?
+  rawText         String
+  source          JudgmentSource
+  externalId      String?
+  sourceUrl       String?
+  fetchedAt       DateTime?
+  contentHash     String           @unique
+  ingestionStatus IngestionStatus  @default(structured)
+  deletedAt       DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  themes            JudgmentTheme[]
+  dossierPrecedents DossierPrecedent[]
+}
+
+model JudgmentTheme {
+  judgmentId String
+  themeId    String
+  judgment   Judgment @relation(fields: [judgmentId], references: [id], onDelete: Cascade)
+  theme      Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@id([judgmentId, themeId])
+}
+
+model LegalCase {
+  id               String          @id @default(cuid())
+  clerkOrgId       String
+  clerkUserId      String
+  materialText     String
+  claim            String?
+  themeId          String?
+  theme            Theme?          @relation(fields: [themeId], references: [id])
+  tribunal         String
+  judgeName        String?
+  organName        String?
+  status           LegalCaseStatus @default(draft)
+  inferredThemeSlug String?
+  inferredClaim    String?
+  currentDossierId String?         @unique
+  currentDossier   Dossier?        @relation("CurrentDossier", fields: [currentDossierId], references: [id])
+  currentPetitionId String?        @unique
+  currentPetition  Petition?       @relation("CurrentPetition", fields: [currentPetitionId], references: [id])
+  dossierJobStatus DossierJobStatus?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  dossiers  Dossier[]  @relation("CaseDossiers")
+  petitions Petition[] @relation("CasePetitions")
+
+  @@index([clerkOrgId])
+}
+
+model Dossier {
+  id                String   @id @default(cuid())
+  legalCaseId       String
+  legalCase         LegalCase @relation("CaseDossiers", fields: [legalCaseId], references: [id], onDelete: Cascade)
+  clerkOrgId        String
+  patternSummary    String
+  coverageNote      String?
+  organPatternLabel String
+  isEmpty           Boolean  @default(false)
+  isThin            Boolean  @default(false)
+  isCurrent         Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  precedents    DossierPrecedent[]
+  petitions     Petition[]
+  currentForCase LegalCase? @relation("CurrentDossier")
+
+  @@index([legalCaseId, isCurrent])
+  @@index([clerkOrgId])
+}
+
+model DossierPrecedent {
+  id         String          @id @default(cuid())
+  dossierId  String
+  dossier    Dossier         @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  judgmentId String
+  judgment   Judgment        @relation(fields: [judgmentId], references: [id])
+  stance     PrecedentStance
+  excerpt    String
+  sortOrder  Int
+
+  petitionAnchors PetitionAnchor[]
+
+  @@unique([dossierId, judgmentId])
+}
+
+model Petition {
+  id          String         @id @default(cuid())
+  legalCaseId String
+  legalCase   LegalCase      @relation("CasePetitions", fields: [legalCaseId], references: [id], onDelete: Cascade)
+  dossierId   String
+  dossier     Dossier        @relation(fields: [dossierId], references: [id])
+  clerkOrgId  String
+  sections    Json
+  disclaimer  String
+  status      PetitionStatus @default(current)
+  createdAt   DateTime       @default(now())
+
+  anchors        PetitionAnchor[]
+  currentForCase LegalCase?       @relation("CurrentPetition")
+
+  @@index([legalCaseId, status])
+  @@index([clerkOrgId])
+}
+
+model PetitionAnchor {
+  id                 String            @id @default(cuid())
+  petitionId         String
+  petition           Petition          @relation(fields: [petitionId], references: [id], onDelete: Cascade)
+  dossierPrecedentId String?
+  dossierPrecedent   DossierPrecedent? @relation(fields: [dossierPrecedentId], references: [id])
+  sectionKey         String
+  assertionText      String
+  isHypothesis       Boolean           @default(false)
+}
