@@ -1,7 +1,12 @@
-import { cache } from "react";
 import { auth } from "@clerk/nextjs/server";
+import { cacheLife, cacheTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { getCaseForOfficeSelect } from "@/server/case/get-case-for-office-select";
+import {
+  officeCaseCacheTag,
+  officeCasesCacheTag,
+} from "@/server/case/office-cache-tags";
 import {
   isProductThemeName,
   OUTRO_THEME_MIN_LENGTH,
@@ -9,7 +14,7 @@ import {
 } from "@/lib/product-themes";
 import { isSupportedTribunalSlug } from "@/lib/tribunals";
 import type { AgentPort } from "@/server/agent/schemas";
-import { resolveAgentPort } from "@/server/agent/resolve-agent-port";
+import { liveCaseWhere } from "@/server/case/live-case-where";
 
 export interface OfficeContext {
   clerkOrgId: string;
@@ -84,7 +89,7 @@ export async function confirmCaseTheme(
   },
 ) {
   const legalCase = await prisma.legalCase.findFirst({
-    where: { id: legalCaseId, clerkOrgId: office.clerkOrgId },
+    where: liveCaseWhere(office.clerkOrgId, legalCaseId),
   });
 
   if (!legalCase) {
@@ -172,48 +177,65 @@ export async function getCaseForOffice(
   legalCaseId: string,
   clerkOrgId: string,
 ) {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(officeCasesCacheTag(clerkOrgId));
+  cacheTag(officeCaseCacheTag(clerkOrgId, legalCaseId));
+
   return prisma.legalCase.findFirst({
-    where: { id: legalCaseId, clerkOrgId },
-    include: {
-      theme: true,
-      currentDossier: {
-        include: {
-          precedents: {
-            include: { judgment: true },
-            orderBy: { sortOrder: "asc" },
-          },
-        },
-      },
-      currentPetition: {
-        include: { anchors: true },
-      },
-      dossiers: {
-        orderBy: { createdAt: "desc" },
-      },
-      petitions: {
-        orderBy: { createdAt: "desc" },
-      },
-    },
+    where: liveCaseWhere(clerkOrgId, legalCaseId),
+    select: getCaseForOfficeSelect,
   });
 }
 
-export const listCasesForOffice = cache(async (clerkOrgId: string) => {
+export async function listCasesForOffice(clerkOrgId: string) {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(officeCasesCacheTag(clerkOrgId));
+
   return prisma.legalCase.findMany({
-    where: { clerkOrgId },
+    where: liveCaseWhere(clerkOrgId),
     orderBy: { updatedAt: "desc" },
-    include: {
-      theme: true,
+    select: {
+      id: true,
+      status: true,
+      tribunal: true,
+      judgeName: true,
+      updatedAt: true,
+      currentDossierId: true,
+      dossierJobStatus: true,
+      theme: {
+        select: { name: true },
+      },
       currentPetition: {
         select: { status: true },
       },
     },
   });
-});
+}
 
 export async function listOutroThemesForOffice(clerkOrgId: string) {
   return prisma.theme.findMany({
     where: { clerkOrgId, kind: "outro" },
     orderBy: { name: "asc" },
+  });
+}
+
+export async function hideCaseForOffice(
+  legalCaseId: string,
+  office: OfficeContext,
+) {
+  const legalCase = await prisma.legalCase.findFirst({
+    where: liveCaseWhere(office.clerkOrgId, legalCaseId),
+  });
+
+  if (!legalCase) {
+    throw new Error("Caso não encontrado");
+  }
+
+  return prisma.legalCase.update({
+    where: { id: legalCase.id },
+    data: { deletedAt: new Date() },
   });
 }
 

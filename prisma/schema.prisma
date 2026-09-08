@@ -119,6 +119,7 @@ model LegalCase {
   currentPetitionId String?        @unique
   currentPetition  Petition?       @relation("CurrentPetition", fields: [currentPetitionId], references: [id])
   dossierJobStatus DossierJobStatus?
+  deletedAt        DateTime?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 

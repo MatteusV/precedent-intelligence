@@ -17,6 +17,7 @@ import {
   ingestOnCoverageMiss,
 } from "@/server/coverage/ingest-jurisprudencias";
 import { validateDossierDraft } from "@/server/validators/citation-validator";
+import { liveCaseWhere } from "@/server/case/live-case-where";
 
 export interface GenerateDossierResult {
   dossierId: string;
@@ -48,7 +49,7 @@ export async function generateDossierForCase(
   agentPort: AgentPort,
 ): Promise<GenerateDossierResult> {
   const legalCase = await prisma.legalCase.findFirst({
-    where: { id: legalCaseId, clerkOrgId },
+    where: liveCaseWhere(clerkOrgId, legalCaseId),
     include: { theme: true },
   });
 
@@ -76,14 +77,18 @@ export async function generateDossierForCase(
       data: { dossierJobStatus: "ingesting" },
     });
 
-    const client = createJurisprudenciasClient();
-    await ingestOnCoverageMiss(
-      {
-        ...filters,
-        query: legalCase.theme.name,
-      },
-      client,
-    );
+    try {
+      const client = createJurisprudenciasClient();
+      await ingestOnCoverageMiss(
+        {
+          ...filters,
+          query: legalCase.theme.name,
+        },
+        client,
+      );
+    } catch {
+      // Spec 5.4: a missing key or API failure still yields a local thin/empty Dossiê.
+    }
 
     matchCount = await countMatchingJudgments(filters);
   }
@@ -253,7 +258,7 @@ export async function generatePetitionForCase(
   agentPort: AgentPort,
 ): Promise<string> {
   const legalCase = await prisma.legalCase.findFirst({
-    where: { id: legalCaseId, clerkOrgId },
+    where: liveCaseWhere(clerkOrgId, legalCaseId),
     include: {
       theme: true,
       currentDossier: {

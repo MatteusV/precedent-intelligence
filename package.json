@@ -13,7 +13,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:validate": "prisma validate",
-    "spike:cursor": "tsx scripts/spike-cursor-sdk.ts"
+    "spike:cursor": "tsx scripts/spike-cursor-sdk.ts",
+    "verify:mvp": "tsx scripts/verify-mvp-loop.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

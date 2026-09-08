@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  cacheComponents: true,
   serverExternalPackages: ["@cursor/sdk", "@neondatabase/serverless", "ws"],
   images: {
     remotePatterns: [

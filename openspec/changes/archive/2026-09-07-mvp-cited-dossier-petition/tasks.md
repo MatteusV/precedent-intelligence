@@ -1,7 +1,7 @@
 ## 1. Provisioning
 
 - [x] 1.1 Link the Vercel project, install Neon and Clerk via Marketplace, `vercel env pull --yes`, and verify `.env.local` has `DATABASE_URL` and Clerk keys (no mock DB or fake auth)
-- [ ] 1.2 Add `CURSOR_API_KEY` and the Jurisprudências.ai key to the project and `.env.local` without committing them, and verify server code can read both names
+- [x] 1.2 Add `CURSOR_API_KEY` and the Jurisprudências.ai key to the project and `.env.local` without committing them, and verify server code can read both names
 - [x] 1.3 Spike `@cursor/sdk` local `Agent.prompt` + `wait()` on Linux and verify it finishes, or record that the HTTP Cloud Agents adapter is required
 
 ## 2. Data model and seed
@@ -15,8 +15,8 @@
 
 - [x] 3.1 Install `@clerk/nextjs` v7, `ClerkProvider` inside `<body>`, and verify `/` renders without a session
 - [x] 3.2 Add `src/proxy.ts` (not `middleware.ts`) guarding product routes and verify unauthenticated product requests go to sign-in while `/` does not
-- [ ] 3.3 Enable Organizations, sign-in/out, block intake without `orgId`, and verify sign-out ends the product session
-- [ ] 3.4 Scope Caso/Dossiê/Petição/Outro Theme by `clerkOrgId` and verify org A cannot read org B's case or see B's Outro names, while product-Tema Julgamentos remain matchable
+- [x] 3.3 Enable Organizations, sign-in/out, block intake without `orgId`, and verify sign-out ends the product session
+- [x] 3.4 Scope Caso/Dossiê/Petição/Outro Theme by `clerkOrgId` and verify org A cannot read org B's case or see B's Outro names, while product-Tema Julgamentos remain matchable
 
 ## 4. Case intake and confirmation
 
@@ -55,4 +55,4 @@
 - [x] 8.1 README stack uses Cursor SDK (`@cursor/sdk`); `docs/fontes-de-dados.md` matches ingest-on-miss then local Dossiê; landing “IA” copy unchanged; and verify AI Gateway is not described as the runtime
 - [x] 8.2 `pnpm lint` and `pnpm build` succeed with provisioned env vars
 - [x] 8.3 Automated tests cover golden rule, `< 5` ingest trigger, `>= 5` skips API, Outro isolation, missing intake fields, and stale petition
-- [ ] 8.4 Close Beads `planning-6we` only after a signed-in Advogado can confirm Tema, get a Dossiê, and get an anchored Petição
+- [x] 8.4 Close Beads `planning-6we` only after a signed-in Advogado can confirm Tema, get a Dossiê, and get an anchored Petição

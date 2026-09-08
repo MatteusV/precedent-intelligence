@@ -5,9 +5,14 @@ import { redirect } from "next/navigation";
 import {
   confirmCaseTheme,
   createDraftCase,
+  hideCaseForOffice,
   requireOfficeContext,
   resolveAgentPort,
 } from "@/server/case/case-service";
+import {
+  invalidateOfficeCase,
+  invalidateOfficeCases,
+} from "@/server/case/office-cache-tags";
 import {
   generateDossierForCase,
   generatePetitionForCase,
@@ -28,6 +33,9 @@ export async function createCaseAction(formData: FormData): Promise<void> {
     agentPort,
   );
 
+  invalidateOfficeCases(office.clerkOrgId);
+  invalidateOfficeCase(office.clerkOrgId, legalCase.id);
+
   redirect(`/app/casos/${legalCase.id}/confirmar`);
 }
 
@@ -45,6 +53,7 @@ export async function confirmCaseAction(formData: FormData): Promise<void> {
     },
   );
 
+  invalidateOfficeCase(office.clerkOrgId, legalCaseId);
   revalidatePath(`/app/casos/${legalCaseId}`);
   redirect(`/app/casos/${legalCaseId}`);
 }
@@ -55,6 +64,7 @@ export async function generateDossierAction(formData: FormData): Promise<void> {
   const agentPort = await resolveAgentPort();
 
   await generateDossierForCase(legalCaseId, office.clerkOrgId, agentPort);
+  invalidateOfficeCase(office.clerkOrgId, legalCaseId);
   revalidatePath(`/app/casos/${legalCaseId}`);
   redirect(`/app/casos/${legalCaseId}`);
 }
@@ -65,6 +75,19 @@ export async function generatePetitionAction(formData: FormData): Promise<void> 
   const agentPort = await resolveAgentPort();
 
   await generatePetitionForCase(legalCaseId, office.clerkOrgId, agentPort);
+  invalidateOfficeCase(office.clerkOrgId, legalCaseId);
   revalidatePath(`/app/casos/${legalCaseId}`);
   redirect(`/app/casos/${legalCaseId}`);
+}
+
+export async function hideCaseAction(formData: FormData): Promise<void> {
+  const office = await requireOfficeContext();
+  const legalCaseId = String(formData.get("legalCaseId") ?? "");
+
+  await hideCaseForOffice(legalCaseId, office);
+
+  invalidateOfficeCase(office.clerkOrgId, legalCaseId);
+  revalidatePath("/app");
+  revalidatePath(`/app/casos/${legalCaseId}`);
+  redirect("/app");
 }

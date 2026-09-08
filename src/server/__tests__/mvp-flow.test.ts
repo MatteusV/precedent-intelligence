@@ -6,7 +6,16 @@ import {
   validatePetitionDraft,
 } from "@/server/validators/citation-validator";
 import { shouldTriggerIngest } from "@/server/coverage/coverage-rules";
-import { isProductThemeName, OUTRO_THEME_MIN_LENGTH } from "@/lib/product-themes";
+import { ingestOnCoverageMiss } from "@/server/coverage/ingest-jurisprudencias";
+import { createDraftCase } from "@/server/case/case-service";
+import {
+  isProductThemeName,
+  OUTRO_THEME_MIN_LENGTH,
+} from "@/lib/product-themes";
+import {
+  readCursorApiKey,
+  readJurisprudenciasApiKey,
+} from "@/lib/env";
 
 describe("coverage threshold", () => {
   it("triggers ingest below five matches", () => {
@@ -114,18 +123,56 @@ describe("ingest trigger contract", () => {
 });
 
 describe("intake validation", () => {
-  it("rejects missing material or tribunal at action boundary", () => {
-    const materialText = "   ";
-    const tribunal = "";
-    expect(materialText.trim()).toBe("");
-    expect(tribunal).toBe("");
+  const office = {
+    clerkOrgId: "org_test",
+    clerkUserId: "user_test",
+  };
+  const agentPort = createFakeAgentPort();
+
+  it("rejects missing material before inserting a case", async () => {
+    await expect(
+      createDraftCase(
+        { materialText: "   ", tribunal: "tjsp" },
+        office,
+        agentPort,
+      ),
+    ).rejects.toThrow("Material do Caso é obrigatório");
+  });
+
+  it("rejects a tribunal outside the supported list", async () => {
+    await expect(
+      createDraftCase(
+        { materialText: "Fatos do cliente consumidor.", tribunal: "xyz" },
+        office,
+        agentPort,
+      ),
+    ).rejects.toThrow("Tribunal inválido");
   });
 });
 
-describe("stale petition rule", () => {
-  it("marks previous petition stale when regenerating dossier", () => {
-    const previousStatus = "current";
-    const nextStatus = "stale";
-    expect(previousStatus).not.toBe(nextStatus);
+describe("coverage ingest failure", () => {
+  it("returns failed without throwing when the API client errors", async () => {
+    const result = await ingestOnCoverageMiss(
+      {
+        themeId: "theme-1",
+        tribunal: "tjsp",
+        query: "dano moral",
+      },
+      {
+        search: async () => {
+          throw new Error("jurisprudencias down");
+        },
+      },
+    );
+
+    expect(result.failed).toBe(true);
+    expect(result.inserted).toBe(0);
+  });
+});
+
+describe("product keys", () => {
+  it("exposes readers for Cursor and Jurisprudências.ai keys", () => {
+    expect(typeof readCursorApiKey()).toBe("string");
+    expect(typeof readJurisprudenciasApiKey()).toBe("string");
   });
 });
