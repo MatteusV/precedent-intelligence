@@ -1,3 +1,8 @@
+import {
+  getJobStatusLabel,
+  isGenerationJobInFlight,
+} from "@/lib/generation-jobs";
+
 export const CASE_STAGE_IDS = [
   "material",
   "theme",
@@ -14,11 +19,16 @@ export interface CaseStageInput {
   readonly hasDossier: boolean;
   readonly hasCurrentPetition: boolean;
   readonly isGeneratingDossier: boolean;
+  readonly isGeneratingPetition: boolean;
+  readonly dossierJobStatus?: string | null;
+  readonly petitionJobStatus?: string | null;
 }
 
 export interface CaseStageProgress {
   readonly id: CaseStageId;
   readonly state: CaseStageState;
+  readonly note?: string;
+  readonly isBusy?: boolean;
 }
 
 export interface CaseStageCopy {
@@ -31,6 +41,7 @@ export interface CaseNextAction {
   readonly stageId: CaseStageId | null;
   readonly label: string;
   readonly href: string;
+  readonly isBusy?: boolean;
 }
 
 export const CASE_STAGE_COPY: Record<CaseStageId, CaseStageCopy> = {
@@ -62,11 +73,7 @@ export const CASE_STAGE_COPY: Record<CaseStageId, CaseStageCopy> = {
 export function isDossierJobInFlight(
   dossierJobStatus: string | null | undefined,
 ): boolean {
-  return Boolean(
-    dossierJobStatus &&
-      dossierJobStatus !== "completed" &&
-      dossierJobStatus !== "failed",
-  );
+  return isGenerationJobInFlight(dossierJobStatus);
 }
 
 /**
@@ -77,12 +84,16 @@ export function toCaseStageInput(legalCase: {
   readonly currentDossierId: string | null;
   readonly currentPetition: { readonly status: "current" | "stale" } | null;
   readonly dossierJobStatus: string | null;
+  readonly petitionJobStatus?: string | null;
 }): CaseStageInput {
   return {
     status: legalCase.status,
     hasDossier: Boolean(legalCase.currentDossierId),
     hasCurrentPetition: legalCase.currentPetition?.status === "current",
-    isGeneratingDossier: isDossierJobInFlight(legalCase.dossierJobStatus),
+    isGeneratingDossier: isGenerationJobInFlight(legalCase.dossierJobStatus),
+    isGeneratingPetition: isGenerationJobInFlight(legalCase.petitionJobStatus),
+    dossierJobStatus: legalCase.dossierJobStatus,
+    petitionJobStatus: legalCase.petitionJobStatus ?? null,
   };
 }
 
@@ -121,7 +132,7 @@ export function getCurrentStageId(input: CaseStageInput): CaseStageId | null {
     return "dossier";
   }
 
-  if (!input.hasCurrentPetition) {
+  if (!input.hasCurrentPetition || input.isGeneratingPetition) {
     return "petition";
   }
 
@@ -139,7 +150,23 @@ export function getCaseStages(
 
   return CASE_STAGE_IDS.map((id) => {
     if (currentId && id === currentId) {
-      return { id, state: "current" };
+      const isBusy =
+        (id === "dossier" && input.isGeneratingDossier) ||
+        (id === "petition" && input.isGeneratingPetition);
+      const note = isBusy
+        ? getJobStatusLabel(
+            id === "dossier" ? "dossier" : "petition",
+            id === "dossier"
+              ? (input.dossierJobStatus ?? "pending")
+              : (input.petitionJobStatus ?? "pending"),
+          )
+        : undefined;
+
+      return {
+        id,
+        state: "current",
+        ...(isBusy ? { note, isBusy: true } : {}),
+      };
     }
 
     if (completed.has(id)) {
@@ -181,8 +208,13 @@ export function getCaseNextAction(
 
   return {
     stageId: current.id,
-    label: CASE_STAGE_COPY[current.id].action,
-    href: getCaseStageHref(caseId, current.id, current.state) ?? `/app/casos/${caseId}`,
+    label: current.isBusy
+      ? (current.note ?? CASE_STAGE_COPY[current.id].action)
+      : CASE_STAGE_COPY[current.id].action,
+    href:
+      getCaseStageHref(caseId, current.id, current.state) ??
+      `/app/casos/${caseId}`,
+    ...(current.isBusy ? { isBusy: true } : {}),
   };
 }
 
@@ -210,4 +242,47 @@ export function getCaseStageHref(
   };
 
   return `/app/casos/${caseId}#${fragment[stageId]}`;
+}
+
+/**
+ * Overlays optimistic/polled generation status onto server-rendered stages.
+ */
+export function overlayLiveStages(
+  stages: readonly CaseStageProgress[],
+  live: {
+    readonly isDossierBusy: boolean;
+    readonly isPetitionBusy: boolean;
+    readonly dossierJobStatus: string | null;
+    readonly petitionJobStatus: string | null;
+  } | null,
+): readonly CaseStageProgress[] {
+  if (!live || (!live.isDossierBusy && !live.isPetitionBusy)) {
+    return stages;
+  }
+
+  return stages.map((stage) => {
+    if (stage.id === "dossier" && live.isDossierBusy) {
+      return {
+        id: "dossier",
+        state: "current",
+        isBusy: true,
+        note: getJobStatusLabel("dossier", live.dossierJobStatus ?? "pending"),
+      };
+    }
+
+    if (stage.id === "petition" && live.isPetitionBusy) {
+      return {
+        id: "petition",
+        state: "current",
+        isBusy: true,
+        note: getJobStatusLabel("petition", live.petitionJobStatus ?? "pending"),
+      };
+    }
+
+    if (live.isDossierBusy && stage.id === "petition" && stage.state === "current") {
+      return { id: "petition", state: "upcoming" };
+    }
+
+    return stage;
+  });
 }

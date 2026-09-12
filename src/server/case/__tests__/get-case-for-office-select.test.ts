@@ -6,6 +6,7 @@ describe("getCaseForOfficeSelect", () => {
     expect(getCaseForOfficeSelect).toMatchObject({
       materialText: true,
       claim: true,
+      petitionJobStatus: true,
       currentDossier: {
         select: {
           precedents: {

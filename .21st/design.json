@@ -374,6 +374,11 @@
       "id": "desk-system",
       "choice": "Mesa do escritório",
       "rationale": "Unify landing and app on app-desk tokens. Persistent case rail, court-roll docket with next action, folio as the only paper surface."
+    },
+    {
+      "id": "generation-progress",
+      "choice": "Checklist da spine",
+      "rationale": "Dossier and petition generation reuse the case-spine dots, gold current ring, and mono stage labels. Every backend job status stays visible with elapsed time so a long agent call never looks frozen."
     }
   ],
   "evidence": [

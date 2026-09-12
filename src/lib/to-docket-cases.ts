@@ -14,6 +14,7 @@ interface CaseRecord {
   readonly updatedAt: Date;
   readonly currentDossierId: string | null;
   readonly dossierJobStatus: string | null;
+  readonly petitionJobStatus?: string | null;
   readonly theme: { readonly name: string } | null;
   readonly currentPetition: { readonly status: "current" | "stale" } | null;
 }

@@ -1,9 +1,15 @@
+"use client";
+
+import { useFormStatus } from "react-dom";
+import { useCaseGeneration } from "@/components/app/case-generation-provider";
 import { Folio } from "@/components/app/folio";
+import { GenerationProgress } from "@/components/app/generation-progress";
 import { StanceMark } from "@/components/app/stance-mark";
 import { WorkSection } from "@/components/app/work-section";
 import { Button } from "@/components/ui/button";
 import { generateDossierAction } from "@/app/actions/case-actions";
 import { isDossierJobInFlight } from "@/lib/case-stages";
+import { getDossierJobSteps, getJobStatusLabel } from "@/lib/generation-jobs";
 
 interface DossierPrecedentView {
   readonly id: string;
@@ -21,13 +27,6 @@ interface DossierView {
   readonly precedents: readonly DossierPrecedentView[];
 }
 
-const JOB_STATUS_COPY: Record<string, string> = {
-  retrieving: "Recuperando precedentes",
-  ingesting: "Ingerindo acervo",
-  analyzing: "Analisando o padrão",
-  pending: "Na fila",
-};
-
 /**
  * Cited dossiê on the folio reading surface.
  */
@@ -40,15 +39,17 @@ export function DossierPanel({
   readonly dossier: DossierView | null;
   readonly dossierJobStatus: string | null;
 }) {
-  const isGenerating = isDossierJobInFlight(dossierJobStatus);
-  const statusLabel = dossierJobStatus
-    ? JOB_STATUS_COPY[dossierJobStatus]
-    : null;
+  const live = useCaseGeneration();
+  const jobStatus = live?.dossierJobStatus ?? dossierJobStatus;
+  const isBusy = live?.isDossierBusy ?? isDossierJobInFlight(jobStatus);
+  const isFailed = live?.isDossierFailed ?? jobStatus === "failed";
+  const steps = getDossierJobSteps(jobStatus, { isFailed });
+  const statusLabel = isBusy || isFailed ? getJobStatusLabel("dossier", jobStatus) : null;
 
   return (
     <WorkSection
       actions={
-        isGenerating && statusLabel ? (
+        statusLabel ? (
           <p className="font-mono text-xs text-primary">{statusLabel}</p>
         ) : null
       }
@@ -56,19 +57,28 @@ export function DossierPanel({
       label="Dossiê"
       title="Padrão daquele juízo"
     >
-      {!dossier ? (
+      {isBusy || isFailed ? (
+        <GenerationProgress
+          steps={steps}
+          title={
+            isFailed
+              ? "A geração do dossiê parou"
+              : "Gerando o dossiê deste recorte"
+          }
+        />
+      ) : null}
+
+      {!dossier && !isBusy && !isFailed ? (
         <div className="rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
-          <form action={generateDossierAction}>
-            <input name="legalCaseId" type="hidden" value={legalCaseId} />
-            <p className="mb-4 max-w-xl text-sm leading-6 text-muted-foreground">
-              Sem precedente no dossiê, não há afirmação de jurisprudência.
-            </p>
-            <Button disabled={isGenerating} type="submit">
-              {isGenerating ? "Gerando dossiê" : "Gerar dossiê"}
-            </Button>
-          </form>
+          <DossierGenerateForm
+            isBusy={isBusy}
+            legalCaseId={legalCaseId}
+            onStart={() => live?.markGenerating("dossier")}
+          />
         </div>
-      ) : (
+      ) : null}
+
+      {dossier ? (
         <Folio>
           <p className="text-lg leading-8">{dossier.patternSummary}</p>
           <p className="mt-3 font-mono text-xs tracking-wider text-folio-ink/60 uppercase">
@@ -97,15 +107,57 @@ export function DossierPanel({
             ))}
           </ol>
         </Folio>
-      )}
-      {dossier ? (
-        <form action={generateDossierAction}>
-          <input name="legalCaseId" type="hidden" value={legalCaseId} />
-          <Button type="submit" variant="outline">
-            Gerar novo dossiê
-          </Button>
-        </form>
+      ) : null}
+
+      {!isBusy && (dossier || isFailed) ? (
+        <DossierGenerateForm
+          isBusy={isBusy}
+          legalCaseId={legalCaseId}
+          onStart={() => live?.markGenerating("dossier")}
+          variant={dossier ? "outline" : "default"}
+        />
       ) : null}
     </WorkSection>
+  );
+}
+
+function DossierGenerateForm({
+  legalCaseId,
+  isBusy,
+  onStart,
+  variant = "default",
+}: {
+  readonly legalCaseId: string;
+  readonly isBusy: boolean;
+  readonly onStart: () => void;
+  readonly variant?: "default" | "outline";
+}) {
+  return (
+    <form action={generateDossierAction} onSubmit={onStart}>
+      <input name="legalCaseId" type="hidden" value={legalCaseId} />
+      {!isBusy && variant === "default" ? (
+        <p className="mb-4 max-w-xl text-sm leading-6 text-muted-foreground">
+          Sem precedente no dossiê, não há afirmação de jurisprudência.
+        </p>
+      ) : null}
+      <DossierGenerateButton isBusy={isBusy} variant={variant} />
+    </form>
+  );
+}
+
+function DossierGenerateButton({
+  isBusy,
+  variant,
+}: {
+  readonly isBusy: boolean;
+  readonly variant: "default" | "outline";
+}) {
+  const { pending } = useFormStatus();
+  const isGenerating = isBusy || pending;
+
+  return (
+    <Button disabled={isGenerating} type="submit" variant={variant}>
+      {isGenerating ? "Gerando dossiê" : variant === "outline" ? "Gerar novo dossiê" : "Gerar dossiê"}
+    </Button>
   );
 }

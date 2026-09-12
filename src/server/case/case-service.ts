@@ -188,6 +188,25 @@ export async function getCaseForOffice(
   });
 }
 
+/**
+ * Uncached job statuses so the office UI can show live generation steps.
+ */
+export async function getCaseGenerationStatusForOffice(
+  legalCaseId: string,
+  clerkOrgId: string,
+): Promise<{
+  dossierJobStatus: string | null;
+  petitionJobStatus: string | null;
+} | null> {
+  return prisma.legalCase.findFirst({
+    where: liveCaseWhere(clerkOrgId, legalCaseId),
+    select: {
+      dossierJobStatus: true,
+      petitionJobStatus: true,
+    },
+  });
+}
+
 export async function listCasesForOffice(clerkOrgId: string) {
   "use cache";
   cacheLife("minutes");
@@ -204,6 +223,7 @@ export async function listCasesForOffice(clerkOrgId: string) {
       updatedAt: true,
       currentDossierId: true,
       dossierJobStatus: true,
+      petitionJobStatus: true,
       theme: {
         select: { name: true },
       },

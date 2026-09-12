@@ -17,12 +17,17 @@ export function NextActionBanner({
   const isReady = action.stageId === null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-primary/25 bg-primary/8 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      aria-busy={action.isBusy}
+      className="flex flex-col gap-3 rounded-lg border border-primary/25 bg-primary/8 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div className="min-w-0 space-y-1">
-        <SectionLabel>{isReady ? "Arquivo" : "Próximo passo"}</SectionLabel>
+        <SectionLabel>
+          {isReady ? "Arquivo" : action.isBusy ? "Gerando" : "Próximo passo"}
+        </SectionLabel>
         <p className="text-sm text-foreground">{detail ?? action.label}</p>
       </div>
-      {isReady ? null : (
+      {isReady || action.isBusy ? null : (
         <Button asChild>
           <Link href={action.href}>
             Continuar
@@ -30,6 +35,11 @@ export function NextActionBanner({
           </Link>
         </Button>
       )}
+      {action.isBusy ? (
+        <p className="font-mono text-xs tracking-wider text-primary uppercase">
+          Em andamento
+        </p>
+      ) : null}
     </div>
   );
 }

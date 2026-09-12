@@ -14,6 +14,8 @@ const {
   hideCaseForOffice,
   generateDossierForCase,
   generatePetitionForCase,
+  markDossierJobFailed,
+  markPetitionJobFailed,
   resolveAgentPort,
 } = vi.hoisted(() => ({
   updateTag: vi.fn(),
@@ -25,6 +27,8 @@ const {
   hideCaseForOffice: vi.fn(),
   generateDossierForCase: vi.fn(),
   generatePetitionForCase: vi.fn(),
+  markDossierJobFailed: vi.fn(),
+  markPetitionJobFailed: vi.fn(),
   resolveAgentPort: vi.fn(),
 }));
 
@@ -48,6 +52,8 @@ vi.mock("@/server/case/case-service", () => ({
 vi.mock("@/server/dossier/generate-dossier", () => ({
   generateDossierForCase,
   generatePetitionForCase,
+  markDossierJobFailed,
+  markPetitionJobFailed,
 }));
 
 import {
@@ -113,6 +119,24 @@ describe("case-actions cache invalidation", () => {
 
     expect(updateTag).toHaveBeenCalledWith(officeCasesCacheTag("org_a"));
     expect(updateTag).toHaveBeenCalledWith(officeCaseCacheTag("org_a", "case_1"));
+  });
+
+  it("marks the dossier job failed when generation throws", async () => {
+    generateDossierForCase.mockRejectedValueOnce(new Error("boom"));
+    const formData = new FormData();
+    formData.set("legalCaseId", "case_1");
+
+    await expect(generateDossierAction(formData)).rejects.toThrow("boom");
+    expect(markDossierJobFailed).toHaveBeenCalledWith("case_1", "org_a");
+  });
+
+  it("marks the petition job failed when generation throws", async () => {
+    generatePetitionForCase.mockRejectedValueOnce(new Error("boom"));
+    const formData = new FormData();
+    formData.set("legalCaseId", "case_1");
+
+    await expect(generatePetitionAction(formData)).rejects.toThrow("boom");
+    expect(markPetitionJobFailed).toHaveBeenCalledWith("case_1", "org_a");
   });
 
   it("invalidates list and case after hide", async () => {

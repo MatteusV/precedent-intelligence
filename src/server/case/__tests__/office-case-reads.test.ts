@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getCaseForOfficeSelect } from "@/server/case/get-case-for-office-select";
-import { getCaseForOffice, listCasesForOffice } from "@/server/case/case-service";
+import {
+  getCaseForOffice,
+  getCaseGenerationStatusForOffice,
+  listCasesForOffice,
+} from "@/server/case/case-service";
 import { liveCaseWhere } from "@/server/case/live-case-where";
 
 const { findFirst, findMany, cacheLife, cacheTag } = vi.hoisted(() => ({
@@ -52,6 +56,18 @@ describe("office case reads", () => {
     expect(findFirst).toHaveBeenCalledWith({
       where: liveCaseWhere("org_a", "case_1"),
       select: getCaseForOfficeSelect,
+    });
+  });
+
+  it("reads live generation statuses for the escritório case", async () => {
+    await getCaseGenerationStatusForOffice("case_1", "org_a");
+
+    expect(findFirst).toHaveBeenCalledWith({
+      where: liveCaseWhere("org_a", "case_1"),
+      select: {
+        dossierJobStatus: true,
+        petitionJobStatus: true,
+      },
     });
   });
 

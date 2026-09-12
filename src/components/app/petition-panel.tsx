@@ -1,7 +1,13 @@
+"use client";
+
+import { useFormStatus } from "react-dom";
+import { useCaseGeneration } from "@/components/app/case-generation-provider";
 import { Folio } from "@/components/app/folio";
+import { GenerationProgress } from "@/components/app/generation-progress";
 import { WorkSection } from "@/components/app/work-section";
 import { Button } from "@/components/ui/button";
 import { generatePetitionAction } from "@/app/actions/case-actions";
+import { getPetitionJobSteps, getJobStatusLabel, isGenerationJobInFlight } from "@/lib/generation-jobs";
 
 interface PetitionParagraph {
   readonly text: string;
@@ -30,11 +36,37 @@ export function PetitionPanel({
   readonly legalCaseId: string;
   readonly petition: PetitionView | null;
 }) {
-  const needsGeneration = !petition || petition.status === "stale";
+  const live = useCaseGeneration();
+  const jobStatus = live?.petitionJobStatus ?? null;
+  const isBusy = live?.isPetitionBusy ?? isGenerationJobInFlight(jobStatus);
+  const isFailed = live?.isPetitionFailed ?? jobStatus === "failed";
+  const needsGeneration = !petition || petition.status === "stale" || isFailed;
+  const steps = getPetitionJobSteps(jobStatus, { isFailed });
+  const statusLabel = isBusy || isFailed ? getJobStatusLabel("petition", jobStatus) : null;
 
   return (
-    <WorkSection id="peticao" label="Petição" title="Peça ancorada">
-      {needsGeneration ? (
+    <WorkSection
+      actions={
+        statusLabel ? (
+          <p className="font-mono text-xs text-primary">{statusLabel}</p>
+        ) : null
+      }
+      id="peticao"
+      label="Petição"
+      title="Peça ancorada"
+    >
+      {isBusy || isFailed ? (
+        <GenerationProgress
+          steps={steps}
+          title={
+            isFailed
+              ? "A geração da petição parou"
+              : "Gerando a petição ancorada no dossiê"
+          }
+        />
+      ) : null}
+
+      {needsGeneration && !isBusy ? (
         <div className="rounded-lg border border-dashed border-border bg-card/40 px-4 py-5">
           {petition?.status === "stale" ? (
             <p className="mb-4 text-sm text-stamp">
@@ -46,12 +78,15 @@ export function PetitionPanel({
               hipótese.
             </p>
           )}
-          <form action={generatePetitionAction}>
-            <input name="legalCaseId" type="hidden" value={legalCaseId} />
-            <Button type="submit">Gerar petição</Button>
-          </form>
+          <PetitionGenerateForm
+            isBusy={isBusy}
+            legalCaseId={legalCaseId}
+            onStart={() => live?.markGenerating("petition")}
+          />
         </div>
-      ) : (
+      ) : null}
+
+      {petition ? (
         <Folio>
           <p className="border-l-2 border-stamp pl-3 text-sm leading-6 text-folio-ink/70">
             {petition.disclaimer}
@@ -77,7 +112,40 @@ export function PetitionPanel({
             ))}
           </div>
         </Folio>
-      )}
+      ) : null}
+
     </WorkSection>
+  );
+}
+
+function PetitionGenerateForm({
+  legalCaseId,
+  isBusy,
+  onStart,
+}: {
+  readonly legalCaseId: string;
+  readonly isBusy: boolean;
+  readonly onStart: () => void;
+}) {
+  return (
+    <form action={generatePetitionAction} onSubmit={onStart}>
+      <input name="legalCaseId" type="hidden" value={legalCaseId} />
+      <PetitionGenerateButton isBusy={isBusy} />
+    </form>
+  );
+}
+
+function PetitionGenerateButton({
+  isBusy,
+}: {
+  readonly isBusy: boolean;
+}) {
+  const { pending } = useFormStatus();
+  const isGenerating = isBusy || pending;
+
+  return (
+    <Button disabled={isGenerating} type="submit">
+      {isGenerating ? "Gerando petição" : "Gerar petição"}
+    </Button>
   );
 }

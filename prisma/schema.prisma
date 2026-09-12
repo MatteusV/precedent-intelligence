@@ -48,6 +48,14 @@ enum DossierJobStatus {
   failed
 }
 
+enum PetitionJobStatus {
+  pending
+  drafting
+  anchoring
+  completed
+  failed
+}
+
 model Theme {
   id         String    @id @default(cuid())
   slug       String
@@ -118,7 +126,8 @@ model LegalCase {
   currentDossier   Dossier?        @relation("CurrentDossier", fields: [currentDossierId], references: [id])
   currentPetitionId String?        @unique
   currentPetition  Petition?       @relation("CurrentPetition", fields: [currentPetitionId], references: [id])
-  dossierJobStatus DossierJobStatus?
+  dossierJobStatus  DossierJobStatus?
+  petitionJobStatus PetitionJobStatus?
   deletedAt        DateTime?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt

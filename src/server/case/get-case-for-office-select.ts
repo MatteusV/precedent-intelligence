@@ -15,6 +15,7 @@ export const getCaseForOfficeSelect = {
   inferredClaim: true,
   currentDossierId: true,
   dossierJobStatus: true,
+  petitionJobStatus: true,
   theme: {
     select: { name: true },
   },

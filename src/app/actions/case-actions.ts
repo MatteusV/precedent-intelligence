@@ -16,6 +16,8 @@ import {
 import {
   generateDossierForCase,
   generatePetitionForCase,
+  markDossierJobFailed,
+  markPetitionJobFailed,
 } from "@/server/dossier/generate-dossier";
 
 export async function createCaseAction(formData: FormData): Promise<void> {
@@ -63,7 +65,13 @@ export async function generateDossierAction(formData: FormData): Promise<void> {
   const legalCaseId = String(formData.get("legalCaseId") ?? "");
   const agentPort = await resolveAgentPort();
 
-  await generateDossierForCase(legalCaseId, office.clerkOrgId, agentPort);
+  try {
+    await generateDossierForCase(legalCaseId, office.clerkOrgId, agentPort);
+  } catch (error) {
+    await markDossierJobFailed(legalCaseId, office.clerkOrgId);
+    throw error;
+  }
+
   invalidateOfficeCase(office.clerkOrgId, legalCaseId);
   revalidatePath(`/app/casos/${legalCaseId}`);
   redirect(`/app/casos/${legalCaseId}`);
@@ -74,7 +82,13 @@ export async function generatePetitionAction(formData: FormData): Promise<void> 
   const legalCaseId = String(formData.get("legalCaseId") ?? "");
   const agentPort = await resolveAgentPort();
 
-  await generatePetitionForCase(legalCaseId, office.clerkOrgId, agentPort);
+  try {
+    await generatePetitionForCase(legalCaseId, office.clerkOrgId, agentPort);
+  } catch (error) {
+    await markPetitionJobFailed(legalCaseId, office.clerkOrgId);
+    throw error;
+  }
+
   invalidateOfficeCase(office.clerkOrgId, legalCaseId);
   revalidatePath(`/app/casos/${legalCaseId}`);
   redirect(`/app/casos/${legalCaseId}`);

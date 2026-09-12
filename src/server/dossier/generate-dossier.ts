@@ -60,6 +60,11 @@ export async function generateDossierForCase(
 
   await prisma.legalCase.update({
     where: { id: legalCase.id },
+    data: { dossierJobStatus: "pending" },
+  });
+
+  await prisma.legalCase.update({
+    where: { id: legalCase.id },
     data: { dossierJobStatus: "retrieving" },
   });
 
@@ -303,6 +308,11 @@ export async function generatePetitionForCase(
     throw new Error("Caso sem dossiê atual para gerar petição");
   }
 
+  await prisma.legalCase.update({
+    where: { id: legalCase.id },
+    data: { petitionJobStatus: "pending" },
+  });
+
   const precedents = legalCase.currentDossier.precedents;
   const petitionInput = {
     materialText: legalCase.materialText,
@@ -319,6 +329,11 @@ export async function generatePetitionForCase(
     })),
   };
 
+  await prisma.legalCase.update({
+    where: { id: legalCase.id },
+    data: { petitionJobStatus: "drafting" },
+  });
+
   let draft;
   try {
     draft = await agentPort.draftPetition(petitionInput);
@@ -326,6 +341,11 @@ export async function generatePetitionForCase(
     const { createFakeAgentPort } = await import("@/server/agent/fake-agent-port");
     draft = await createFakeAgentPort().draftPetition(petitionInput);
   }
+
+  await prisma.legalCase.update({
+    where: { id: legalCase.id },
+    data: { petitionJobStatus: "anchoring" },
+  });
 
   const allowlistedCaseNumbers = new Set(
     precedents
@@ -377,9 +397,38 @@ export async function generatePetitionForCase(
 
     await tx.legalCase.update({
       where: { id: legalCase.id },
-      data: { currentPetitionId: petition.id },
+      data: {
+        currentPetitionId: petition.id,
+        petitionJobStatus: "completed",
+      },
     });
 
     return petition.id;
+  });
+}
+
+/**
+ * Marks a dossier job as failed after a generation error.
+ */
+export async function markDossierJobFailed(
+  legalCaseId: string,
+  clerkOrgId: string,
+): Promise<void> {
+  await prisma.legalCase.updateMany({
+    where: liveCaseWhere(clerkOrgId, legalCaseId),
+    data: { dossierJobStatus: "failed" },
+  });
+}
+
+/**
+ * Marks a petition job as failed after a generation error.
+ */
+export async function markPetitionJobFailed(
+  legalCaseId: string,
+  clerkOrgId: string,
+): Promise<void> {
+  await prisma.legalCase.updateMany({
+    where: liveCaseWhere(clerkOrgId, legalCaseId),
+    data: { petitionJobStatus: "failed" },
   });
 }

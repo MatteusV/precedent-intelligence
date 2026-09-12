@@ -5,6 +5,7 @@ import {
   getCurrentStageId,
   getNewCaseStages,
   isDossierJobInFlight,
+  overlayLiveStages,
   toCaseStageInput,
 } from "@/lib/case-stages";
 
@@ -26,6 +27,7 @@ describe("getCaseStages", () => {
       hasDossier: false,
       hasCurrentPetition: false,
       isGeneratingDossier: false,
+      isGeneratingPetition: false,
     });
 
     expect(getCurrentStageId({
@@ -33,6 +35,7 @@ describe("getCaseStages", () => {
       hasDossier: false,
       hasCurrentPetition: false,
       isGeneratingDossier: false,
+      isGeneratingPetition: false,
     })).toBe("theme");
     expect(stages.map((stage) => stage.state)).toEqual([
       "complete",
@@ -48,6 +51,7 @@ describe("getCaseStages", () => {
       hasDossier: false,
       hasCurrentPetition: false,
       isGeneratingDossier: false,
+      isGeneratingPetition: false,
     });
 
     expect(stages.map((stage) => `${stage.id}:${stage.state}`)).toEqual([
@@ -64,9 +68,38 @@ describe("getCaseStages", () => {
       hasDossier: true,
       hasCurrentPetition: true,
       isGeneratingDossier: true,
+      isGeneratingPetition: false,
+      dossierJobStatus: "analyzing",
     });
 
-    expect(stages.find((stage) => stage.id === "dossier")?.state).toBe("current");
+    expect(stages.find((stage) => stage.id === "dossier")).toMatchObject({
+      state: "current",
+      isBusy: true,
+      note: "Analisando o padrão",
+    });
+  });
+
+  it("keeps a drafting petition on the petition stage", () => {
+    const stages = getCaseStages({
+      status: "confirmed",
+      hasDossier: true,
+      hasCurrentPetition: false,
+      isGeneratingDossier: false,
+      isGeneratingPetition: true,
+      petitionJobStatus: "drafting",
+    });
+
+    expect(stages.find((stage) => stage.id === "petition")).toMatchObject({
+      state: "current",
+      isBusy: true,
+      note: "Redigindo a peça",
+    });
+    expect(getCaseNextAction("c1", stages)).toEqual({
+      stageId: "petition",
+      label: "Redigindo a peça",
+      href: "/app/casos/c1#peticao",
+      isBusy: true,
+    });
   });
 
   it("maps persisted fields onto stage input", () => {
@@ -82,6 +115,34 @@ describe("getCaseStages", () => {
       hasDossier: true,
       hasCurrentPetition: false,
       isGeneratingDossier: false,
+      isGeneratingPetition: false,
+      dossierJobStatus: null,
+      petitionJobStatus: null,
+    });
+  });
+});
+
+describe("overlayLiveStages", () => {
+  it("marks the dossier stage busy from a live poll", () => {
+    const stages = getCaseStages({
+      status: "confirmed",
+      hasDossier: false,
+      hasCurrentPetition: false,
+      isGeneratingDossier: false,
+      isGeneratingPetition: false,
+    });
+
+    expect(
+      overlayLiveStages(stages, {
+        isDossierBusy: true,
+        isPetitionBusy: false,
+        dossierJobStatus: "ingesting",
+        petitionJobStatus: null,
+      }).find((stage) => stage.id === "dossier"),
+    ).toMatchObject({
+      state: "current",
+      isBusy: true,
+      note: "Conferindo cobertura",
     });
   });
 });
@@ -99,6 +160,7 @@ describe("getCaseNextAction", () => {
       hasDossier: true,
       hasCurrentPetition: true,
       isGeneratingDossier: false,
+      isGeneratingPetition: false,
     };
 
     expect(getCurrentStageId(input)).toBeNull();

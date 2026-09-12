@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { CaseWorkbench } from "@/components/app/case-workbench";
 import { DossierPanel } from "@/components/app/dossier-panel";
 import { HideCaseButton } from "@/components/app/hide-case-button";
-import { NextActionBanner } from "@/components/app/next-action-banner";
+import { LiveNextActionBanner } from "@/components/app/live-next-action-banner";
 import { PageHeader } from "@/components/app/page-header";
 import { PetitionPanel } from "@/components/app/petition-panel";
 import { WorkSection } from "@/components/app/work-section";
@@ -61,7 +61,14 @@ async function CaseDetailContent({ params }: CaseDetailPageProps) {
     : null;
 
   return (
-    <CaseWorkbench caseId={legalCase.id} stages={stages}>
+    <CaseWorkbench
+      caseId={legalCase.id}
+      generation={{
+        dossierJobStatus: legalCase.dossierJobStatus,
+        petitionJobStatus: legalCase.petitionJobStatus,
+      }}
+      stages={stages}
+    >
       <PageHeader
         actions={<HideCaseButton legalCaseId={legalCase.id} />}
         description={
@@ -73,7 +80,11 @@ async function CaseDetailContent({ params }: CaseDetailPageProps) {
         title={legalCase.theme?.name ?? "Rascunho"}
       />
 
-      <NextActionBanner action={nextAction} />
+      <LiveNextActionBanner
+        action={nextAction}
+        caseId={legalCase.id}
+        stages={stages}
+      />
 
       <WorkSection id="material" label="Material">
         <div className="rounded-lg border border-border bg-card/40 px-4 py-4">

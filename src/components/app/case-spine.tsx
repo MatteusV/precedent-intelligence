@@ -33,11 +33,16 @@ export function CaseSpine({
                 stage.state === "complete" && "bg-primary",
                 stage.state === "current" &&
                   "bg-primary ring-2 ring-primary/40",
+                stage.isBusy && "motion-safe:animate-pulse",
               )}
-              title={CASE_STAGE_COPY[stage.id].label}
+              title={
+                stage.note
+                  ? `${CASE_STAGE_COPY[stage.id].label}: ${stage.note}`
+                  : CASE_STAGE_COPY[stage.id].label
+              }
             />
             <span className="sr-only">
-              {CASE_STAGE_COPY[stage.id].label}: {stage.state}
+              {CASE_STAGE_COPY[stage.id].label}: {stage.note ?? stage.state}
             </span>
           </li>
         ))}
@@ -65,6 +70,7 @@ export function CaseSpine({
                 stage.state === "complete" && "border-primary bg-primary",
                 stage.state === "current" &&
                   "border-primary bg-background ring-2 ring-primary/50",
+                stage.isBusy && "motion-safe:animate-pulse",
               )}
             />
             <span className="min-w-0">
@@ -79,7 +85,7 @@ export function CaseSpine({
                 {copy.label}
               </span>
               <span className="block text-xs text-muted-foreground">
-                {copy.description}
+                {stage.note ?? copy.description}
               </span>
             </span>
           </>
